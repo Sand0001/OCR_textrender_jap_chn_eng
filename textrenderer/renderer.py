@@ -15,6 +15,8 @@ import libs.font_utils as font_utils
 # noinspection PyMethodMayBeStatic
 from textrenderer.remaper import Remaper
 
+import matplotlib.pyplot as plt
+
 
 class Renderer(object):
     def __init__(self, corpus, fonts, bgs, cfg, width=256, height=32,
@@ -49,15 +51,19 @@ class Renderer(object):
         # to make sure we can crop full word image after apply perspective
         bg = self.gen_bg(width=word_size[0] * 8, height=word_size[1] * 8)
         word_img, text_box_pnts, word_color = self.draw_text_on_bg(word, font, bg)
+        #print ("Before Apply", word_size, word_img.shape)
         self.dmsg("After draw_text_on_bg")
 
         if apply(self.cfg.crop):
             text_box_pnts = self.apply_crop(text_box_pnts, self.cfg.crop)
-
+        
         if apply(self.cfg.line):
             word_img, text_box_pnts = self.liner.apply(word_img, text_box_pnts, word_color)
             self.dmsg("After draw line")
-
+        #print ("After Apply Line", text_box_pnts, word_img.shape, type(word_img))
+        #test_image = draw_box(word_img, text_box_pnts, (0, 255, 155))
+        #plt.imshow(test_image)
+        plt.show()
         if self.debug:
             word_img = draw_box(word_img, text_box_pnts, (0, 255, 155))
 
@@ -74,7 +80,8 @@ class Renderer(object):
                                              max_y=self.cfg.perspective_transform.max_y,
                                              max_z=self.cfg.perspective_transform.max_z,
                                              gpu=self.gpu)
-
+        #plt.imshow(test_image)
+        #plt.show()
         self.dmsg("After perspective transform")
 
         if self.debug:
@@ -172,7 +179,7 @@ class Renderer(object):
         else:
             dst_width = self.out_width
             scale = max(bbox_height / dst_height, bbox_width / self.out_width)
-
+        #print("dst_width : ", dst_width, " out_width : ", self.out_width, "bbox_width : ", bbox_width, "bbox_height : ", bbox_height, "scale : " , scale)
         s_bbox_width = math.ceil(bbox_width / scale)
         s_bbox_height = math.ceil(bbox_height / scale)
 

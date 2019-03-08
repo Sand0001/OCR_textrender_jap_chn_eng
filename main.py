@@ -138,7 +138,7 @@ if __name__ == "__main__":
         mp.set_start_method('spawn', force=True)
     generate_img(1)
     
-    flags.viz = 1
+    #flags.viz = 1
     if flags.viz == 1:
         flags.num_processes = 1
 

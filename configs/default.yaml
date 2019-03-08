@@ -122,7 +122,7 @@ reverse_color:
   fraction: 0.5
 
 emboss:
-  enable: true
+  enable: false
   fraction: 0.1
 
 sharp:

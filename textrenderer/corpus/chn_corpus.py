@@ -20,7 +20,7 @@ class ChnCorpus(Corpus):
             lines = []
             for line in data:
                 line_striped = line.strip()
-                line_striped = line_striped.replace('\u3000', '')
+                line_striped = line_striped.replace('\u3000', ' ')
                 line_striped = line_striped.replace('&nbsp', '')
                 line_striped = line_striped.replace("\00", "")
 
@@ -28,13 +28,24 @@ class ChnCorpus(Corpus):
                     lines.append(line_striped)
 
             # 所有行合并成一行
-            split_chars = [',', '，', '：', '-', ' ', ';', '。']
+            split_chars = ['']
             splitchar = random.choice(split_chars)
             whole_line = splitchar.join(lines)
+            '''
+            total_len = 0    
+            for line in lines:
+                filtered = ''.join(filter(lambda x: x in self.charsets, line))
+                #少于10个字的直接PASS
+                if len(filtered ) < 10:
+                    continue
+                self.corpus.append(filtered)
+                total_len += len(filtered)
 
+            self.probability = [len(l) / float(total_len) for l in self.corpus]
+            '''
             # 在 crnn/libs/label_converter 中 encode 时还会进行过滤
             whole_line = ''.join(filter(lambda x: x in self.charsets, whole_line))
-
+            
             if len(whole_line) > self.length:
                 self.corpus.append(whole_line)
 
@@ -45,4 +56,5 @@ class ChnCorpus(Corpus):
         start = np.random.randint(0, len(line) - self.length)
 
         word = line[start:start + self.length]
-        return word
+        #不能让文本的开始和结束有空格的出现
+        return word.strip(' ')
