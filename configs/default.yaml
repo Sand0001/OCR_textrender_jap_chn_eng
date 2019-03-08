@@ -6,7 +6,7 @@ font_size:
 # By default, text is drawed by Pillow with (https://stackoverflow.com/questions/43828955/measuring-width-of-text-python-pil)
 # If `random_space` is enabled, some text will be drawed char by char with a random space
 random_space:
-  enable: false
+  enable: true
   fraction: 0.3
   min: -0.1 # -0.1 will make chars very close or even overlapped
   max: 0.1
@@ -58,7 +58,7 @@ text_border:
 # Use opencv seamlessClone() to draw text on background
 # For some background image, this will make text image looks more real
 seamless_clone:
-  enable: false
+  enable: true
   fraction: 0.5
 
 perspective_transform:
@@ -118,11 +118,11 @@ line:
 # By default, text is darker than background.
 # If `reverse_color` is enabled, some images will have dark background and light text
 reverse_color:
-  enable: false
+  enable: true
   fraction: 0.5
 
 emboss:
-  enable: false
+  enable: true
   fraction: 0.1
 
 sharp:

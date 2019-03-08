@@ -136,7 +136,9 @@ if __name__ == "__main__":
     # https://github.com/pytorch/pytorch/issues/3492#issuecomment-382660636
     if utils.get_platform() == "OS X":
         mp.set_start_method('spawn', force=True)
-
+    generate_img(1)
+    
+    flags.viz = 1
     if flags.viz == 1:
         flags.num_processes = 1
 
