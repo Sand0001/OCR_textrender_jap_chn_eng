@@ -445,7 +445,8 @@ class Renderer(object):
 
         scale = max(width / bg.shape[1], height / bg.shape[0])
 
-        out = cv2.resize(bg, None, fx=scale, fy=scale)
+        out = bg
+        #out = cv2.resize(bg, None, fx=scale, fy=scale)
 
         x_offset, y_offset = self.random_xy_offset(height, width, out.shape[0], out.shape[1])
 
@@ -621,12 +622,12 @@ class Renderer(object):
 
 
     def add_erode(self, img):
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(2, 2))
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(1, 1))
         img = cv2.erode(img, kernel)
         return img
 
 
     def add_dilate(self,img):
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(2, 2))
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(1, 1))
         img = cv2.dilate(img,kernel)
         return img

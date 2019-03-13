@@ -35,8 +35,8 @@ crop:
 
 # Use image in bg_dir as background for text
 img_bg:
-  enable: false
-  fraction: 0.2
+  enable: true
+  fraction: 0.5
 
 # Not work when random_space applied
 text_border:
@@ -131,8 +131,8 @@ sharp:
 #腐蚀
 erode:
   enable : true
-  fraction : 1
+  fraction : 0.5
 #膨胀
 dilate:
   enable : true
-  fraction : 1
+  fraction : 0.5
