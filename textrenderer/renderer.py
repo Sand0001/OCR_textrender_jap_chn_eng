@@ -74,6 +74,7 @@ class Renderer(object):
         if self.debug:
             word_img = draw_box(word_img, text_box_pnts, (155, 255, 0))
 
+
         word_img, img_pnts_transformed, text_box_pnts_transformed = \
             self.apply_perspective_transform(word_img, text_box_pnts,
                                              max_x=self.cfg.perspective_transform.max_x,
@@ -96,6 +97,14 @@ class Renderer(object):
             word_img = np.clip(word_img, 0., 255.)
             word_img = self.noiser.apply(word_img)
             self.dmsg("After noiser")
+
+        if apply(self.cfg.erode):
+            word_img = self.add_erode(word_img)
+
+        if apply(self.cfg.dilate):
+            word_img = self.add_dilate(word_img)
+
+
 
         blured = False
         if apply(self.cfg.blur):
@@ -121,6 +130,7 @@ class Renderer(object):
         if apply(self.cfg.sharp):
             word_img = self.apply_sharp(word_img)
             self.dmsg("After sharp")
+
 
         return word_img, word
 
@@ -608,3 +618,15 @@ class Renderer(object):
             croped_text_box_pnts[3][1] -= bottom_crop
 
         return croped_text_box_pnts
+
+
+    def add_erode(self, img):
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(2, 2))
+        img = cv2.erode(img, kernel)
+        return img
+
+
+    def add_dilate(self,img):
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(2, 2))
+        img = cv2.dilate(img,kernel)
+        return img
