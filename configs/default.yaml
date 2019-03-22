@@ -36,7 +36,7 @@ crop:
 # Use image in bg_dir as background for text
 img_bg:
   enable: true
-  fraction: 0.5
+  fraction: 0.05
 
 # Not work when random_space applied
 text_border:
@@ -59,7 +59,7 @@ text_border:
 # For some background image, this will make text image looks more real
 seamless_clone:
   enable: true
-  fraction: 0.5
+  fraction: 0.0001
 
 perspective_transform:
   max_x: 25
@@ -131,8 +131,8 @@ sharp:
 #腐蚀
 erode:
   enable : true
-  fraction : 0.5
+  fraction : 0.25
 #膨胀
 dilate:
   enable : true
-  fraction : 0.5
+  fraction : 0.25

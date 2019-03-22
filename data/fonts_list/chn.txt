@@ -1,1 +1,7 @@
 ./data/fonts/chn/msyh.ttc
+./data/fonts/chn/Hiragino Sans GB.ttc
+./data/fonts/chn/NISC18030.ttf
+./data/fonts/chn/PingFang.ttc
+./data/fonts/chn/STHeiti Light.ttc
+./data/fonts/chn/STHeiti Medium.ttc
+./data/fonts/chn/Songti.ttc

@@ -21,6 +21,18 @@ class ChnCorpus(Corpus):
 
 
 
+    def iseng(self, line):
+        #数据很大，就一行，只看前10个
+        line = line[0:10]
+        alpha_num = 0
+        for c in line:
+            if c <= 'z' and c >= 'a' or c >= 'A'  and c <= 'Z':
+                alpha_num += 1
+        if alpha_num * 2 >= len(line):
+            return True
+        return False
+
+
     def load(self):
         """
         Load one corpus file as one line , and get random {self.length} words as result
@@ -69,8 +81,13 @@ class ChnCorpus(Corpus):
         # 每次 gen_word，随机选一个预料文件，随机获得长度为 word_length 的字符
         line = random.choice(self.corpus)
 
-        start = np.random.randint(0, len(line) - self.length)
+        length = self.length
 
-        word = line[start:start + self.length]
+        if self.iseng(line):
+            length = 2 * self.length
+
+        start = np.random.randint(0, len(line) - length)
+
+        word = line[start:start + length]
         #不能让文本的开始和结束有空格的出现
         return word.strip(' ')

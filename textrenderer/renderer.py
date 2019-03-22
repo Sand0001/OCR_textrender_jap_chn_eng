@@ -63,7 +63,7 @@ class Renderer(object):
         #print ("After Apply Line", text_box_pnts, word_img.shape, type(word_img))
         #test_image = draw_box(word_img, text_box_pnts, (0, 255, 155))
         #plt.imshow(test_image)
-        plt.show()
+        #plt.show()
         if self.debug:
             word_img = draw_box(word_img, text_box_pnts, (0, 255, 155))
 
@@ -98,12 +98,7 @@ class Renderer(object):
             word_img = self.noiser.apply(word_img)
             self.dmsg("After noiser")
 
-        if apply(self.cfg.erode):
-            word_img = self.add_erode(word_img)
-
-        if apply(self.cfg.dilate):
-            word_img = self.add_dilate(word_img)
-
+       
 
 
         blured = False
@@ -130,6 +125,12 @@ class Renderer(object):
         if apply(self.cfg.sharp):
             word_img = self.apply_sharp(word_img)
             self.dmsg("After sharp")
+
+        if apply(self.cfg.erode):
+            word_img = self.add_erode(word_img)
+
+        if apply(self.cfg.dilate):
+            word_img = self.add_dilate(word_img)
 
 
         return word_img, word
@@ -233,8 +234,24 @@ class Renderer(object):
 
         word_roi_bg = bg[ymin: ymax, xmin: xmax]
 
+        print (word_roi_bg[word_roi_bg < 32].shape)
+        #黑色的太多了，那么PASS掉
+        if word_roi_bg[word_roi_bg < 32].shape[0] > 200 :
+            return None
+            #plt.imshow(bg)
+            #plt.show()
+            
+        
+
+
         bg_mean = int(np.mean(word_roi_bg) * (2 / 3))
+        
+
+
+        #if bg_mean < 
+
         word_color = random.randint(0, bg_mean)
+        print ("bg_mean : ", bg_mean, " np.mean(word_roi_bg) : ", np.mean(word_roi_bg), "word_color : ", word_color)
         return word_color
 
     def draw_text_on_bg(self, word, font, bg):
@@ -258,12 +275,19 @@ class Renderer(object):
 
         pil_img = Image.fromarray(np.uint8(bg))
         draw = ImageDraw.Draw(pil_img)
-
+        max_x = bg_width - word_width - 10
+        max_y = bg_height - word_height - 10
+        #增加位置随机
+        text_x = random.randint( 10, max_x)
+        text_y = random.randint( 10, max_y)
         # Draw text in the center of bg
-        text_x = int((bg_width - word_width) / 2)
-        text_y = int((bg_height - word_height) / 2)
+        #text_x = int((bg_width - word_width) / 2)
+        #text_y = int((bg_height - word_height) / 2)
 
         word_color = self.get_word_color(bg, text_x, text_y, word_height, word_width)
+
+        if word_color is None:
+            raise Exception
 
         if apply(self.cfg.random_space):
             text_x, text_y, word_width, word_height = self.draw_text_with_random_space(draw, font, word, word_color,
