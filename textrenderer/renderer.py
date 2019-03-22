@@ -245,13 +245,10 @@ class Renderer(object):
 
 
         bg_mean = int(np.mean(word_roi_bg) * (2 / 3))
-        
-
-
         #if bg_mean < 
 
         word_color = random.randint(0, bg_mean)
-        print ("bg_mean : ", bg_mean, " np.mean(word_roi_bg) : ", np.mean(word_roi_bg), "word_color : ", word_color)
+        #print ("bg_mean : ", bg_mean, " np.mean(word_roi_bg) : ", np.mean(word_roi_bg), "word_color : ", word_color)
         return word_color
 
     def draw_text_on_bg(self, word, font, bg):
