@@ -234,7 +234,7 @@ class Renderer(object):
 
         word_roi_bg = bg[ymin: ymax, xmin: xmax]
 
-        print (word_roi_bg[word_roi_bg < 32].shape)
+        #print (word_roi_bg[word_roi_bg < 32].shape)
         #黑色的太多了，那么PASS掉
         if word_roi_bg[word_roi_bg < 32].shape[0] > 200 :
             return None
