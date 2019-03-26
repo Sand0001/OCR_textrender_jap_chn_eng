@@ -119,7 +119,7 @@ line:
 # If `reverse_color` is enabled, some images will have dark background and light text
 reverse_color:
   enable: true
-  fraction: 0.5
+  fraction: 0.3
 
 emboss:
   enable: false
