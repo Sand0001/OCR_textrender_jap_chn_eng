@@ -499,7 +499,7 @@ class Renderer(object):
         font_dct = self.fonts
         #font_dct = random.choice(self.fonts)
         #different lang  should have different fonts
-        print(font_dct)
+        #print(font_dct)
         if iseng:
             font_path = random.choice(font_dct['eng'])
         else:
