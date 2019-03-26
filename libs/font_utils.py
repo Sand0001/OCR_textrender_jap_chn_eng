@@ -37,7 +37,16 @@ def get_font_paths_from_list(list_filename):
                 exit(-1)
 
         print("Total fonts num: %d" % len(lines))
-    return fonts
+    font_dct = {}
+    font_dct['chn'] = []
+    font_dct['eng'] = []
+    for font_path in fonts:
+        if 'chn' in font_path:
+            font_dct['chn'].append(font_path)
+            font_dct['eng'].append(font_path)
+        else:
+            font_dct['eng'].append(font_path)
+    return font_dct
 
 
 def load_font(font_path):

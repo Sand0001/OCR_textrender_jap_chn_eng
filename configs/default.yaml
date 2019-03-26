@@ -36,29 +36,29 @@ crop:
 # Use image in bg_dir as background for text
 img_bg:
   enable: true
-  fraction: 0.05
+  fraction: 0.15
 
 # Not work when random_space applied
 text_border:
-  enable: false
-  fraction: 1
+  enable: true
+  fraction: 0.1
 
   # lighter than word color
   light:
     enable: true
-    fraction: 0.5
+    fraction: 0.1
 
   # darker than word color
   dark:
     enable: true
-    fraction: 0.5
+    fraction: 0.1
 
 # https://docs.opencv.org/3.4/df/da0/group__photo__clone.html#ga2bf426e4c93a6b1f21705513dfeca49d
 # https://www.cs.virginia.edu/~connelly/class/2014/comp_photo/proj2/poisson.pdf
 # Use opencv seamlessClone() to draw text on background
 # For some background image, this will make text image looks more real
 seamless_clone:
-  enable: true
+  enable: false
   fraction: 0.0001
 
 perspective_transform:

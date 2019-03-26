@@ -448,7 +448,7 @@ class Renderer(object):
         Generate random background
         """
         bg_high = random.uniform(220, 255)
-        bg_low = bg_high - random.uniform(1, 60)
+        bg_low = bg_high - random.uniform(0, 128)
 
         bg = np.random.randint(bg_low, bg_high, (height, width)).astype(np.uint8)
 
@@ -492,13 +492,18 @@ class Renderer(object):
             font: truetype
             size: word size, removed offset (width, height)
         """
-        word = self.corpus.get_sample(img_index)
+        word, iseng = self.corpus.get_sample(img_index)
 
         if self.clip_max_chars and len(word) > self.max_chars:
             word = word[:self.max_chars]
-
-        font_path = random.choice(self.fonts)
-
+        font_dct = self.fonts
+        #font_dct = random.choice(self.fonts)
+        #different lang  should have different fonts
+        print(font_dct)
+        if iseng:
+            font_path = random.choice(font_dct['eng'])
+        else:
+            font_path = random.choice(font_dct['chn'])
         if self.strict:
             unsupport_chars = self.font_unsupport_chars[font_path]
             for c in word:
