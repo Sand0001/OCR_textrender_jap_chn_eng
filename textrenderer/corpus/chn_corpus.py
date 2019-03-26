@@ -90,4 +90,4 @@ class ChnCorpus(Corpus):
 
         word = line[start:start + length]
         #不能让文本的开始和结束有空格的出现
-        return word.strip(' ')
+        return word.strip(' '), self.iseng(line)
