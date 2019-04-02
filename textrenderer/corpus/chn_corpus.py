@@ -67,7 +67,9 @@ class ChnCorpus(Corpus):
                 line_striped = line_striped.replace('&nbsp', '')
                 line_striped = line_striped.replace("\00", "")
                 line_striped = line_striped.replace("()", "")
+                line_striped = line_striped.replace("（）", "")
                 line_striped = line_striped.replace("[]", "")
+                line_striped = line_striped.replace("「」", "")
                 #line_striped = self.strQ2B(line_striped)
                 if line_striped != u'' and len(line.strip()) > 1:
                     lines.append(line_striped)
@@ -111,6 +113,7 @@ class ChnCorpus(Corpus):
             else:
                 cur_len += 1
             word += line[start]
+            start += 1
             
         #word = line[start:start + length]
         #不能让文本的开始和结束有空格的出现

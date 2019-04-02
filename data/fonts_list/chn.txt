@@ -1,9 +1,4 @@
 ./data/fonts/chn/msyh.ttc
-./data/fonts/chn/Hiragino Sans GB.ttc
-./data/fonts/chn/NISC18030.ttf
-./data/fonts/chn/PingFang.ttc
-./data/fonts/chn/STHeiti Light.ttc
-./data/fonts/chn/STHeiti Medium.ttc
 ./data/fonts/chn/Songti.ttc
 ./data/fonts/eng/Hack-Regular.ttf
 ./data/fonts/eng/AllerDisplay.ttf
@@ -54,7 +49,6 @@
 ./data/fonts/eng/OpenSans-Regular.ttf
 ./data/fonts/eng/OpenSans-Semibold.ttf
 ./data/fonts/eng/OpenSans-SemiboldItalic.ttf
-./data/fonts/eng/Pacifico.ttf
 ./data/fonts/eng/Raleway-Black.ttf
 ./data/fonts/eng/Raleway-BlackItalic.ttf
 ./data/fonts/eng/Raleway-Bold.ttf

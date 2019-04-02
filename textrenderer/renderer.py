@@ -74,7 +74,8 @@ class Renderer(object):
         if self.debug:
             word_img = draw_box(word_img, text_box_pnts, (155, 255, 0))
 
-
+        #plt.imshow(word_img)
+        #plt.show()
         word_img, img_pnts_transformed, text_box_pnts_transformed = \
             self.apply_perspective_transform(word_img, text_box_pnts,
                                              max_x=self.cfg.perspective_transform.max_x,
@@ -275,8 +276,8 @@ class Renderer(object):
         max_x = bg_width - word_width - 10
         max_y = bg_height - word_height - 10
         #增加位置随机
-        text_x = random.randint( 10, max_x)
-        text_y = random.randint( 10, max_y)
+        text_x = random.randint(10, max_x)
+        text_y = random.randint(10, max_y)
         # Draw text in the center of bg
         #text_x = int((bg_width - word_width) / 2)
         #text_y = int((bg_height - word_height) / 2)
@@ -655,6 +656,7 @@ class Renderer(object):
 
 
     def add_dilate(self,img):
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(1, 1))
+        radius = random.randint(1,2)
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(radius, radius))
         img = cv2.dilate(img,kernel)
         return img
