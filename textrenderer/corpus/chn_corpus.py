@@ -33,20 +33,20 @@ class ChnCorpus(Corpus):
         return False
 
 
-	def isalphnum(self, c):
-		if c <= 'z' and c >= 'a' or c >= 'A'  and c <= 'Z':
-			return True
-		if c <= '9' and c >= '0':
-			return True
-		if c == '.' or c == ',':
-			return True
-		return False
+    def isalphnum(self, c):
+        if c <= 'z' and c >= 'a' or c >= 'A'  and c <= 'Z':
+            return True
+        if c <= '9' and c >= '0':
+            return True
+        if c == '.' or c == ',':
+            return True
+        return False
 
-	def ischinese(self, word):
-    	for ch in word:
-        	if '\u4e00' <= ch <= '\u9fff':
-            	return True
-	    return False
+    def ischinese(self, word):
+        for ch in word:
+            if '\u4e00' <= ch <= '\u9fff':
+                return True
+        return False
 
     def load(self):
         """
@@ -102,16 +102,16 @@ class ChnCorpus(Corpus):
         #if self.iseng(line):
         length = 2 * self.length
         start = np.random.randint(0, len(line) - length)
-		word = ''
-		cur_len = 0
-		while cur_len < length and start < len(line):
-			c = line[start]
-			if self.ischinese(c):
-				cur_len += 2
-			else:
-				cur_len += 1
-			word += line[start]
-			
+        word = ''
+        cur_len = 0
+        while cur_len < length and start < len(line):
+            c = line[start]
+            if self.ischinese(c):
+                cur_len += 2
+            else:
+                cur_len += 1
+            word += line[start]
+            
         #word = line[start:start + length]
         #不能让文本的开始和结束有空格的出现
         return word.strip(' '), self.iseng(line)
