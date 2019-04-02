@@ -33,6 +33,21 @@ class ChnCorpus(Corpus):
         return False
 
 
+	def isalphnum(self, c):
+		if c <= 'z' and c >= 'a' or c >= 'A'  and c <= 'Z':
+			return True
+		if c <= '9' and c >= '0':
+			return True
+		if c == '.' or c == ',':
+			return True
+		return False
+
+	def ischinese(self, word):
+    	for ch in word:
+        	if '\u4e00' <= ch <= '\u9fff':
+            	return True
+	    return False
+
     def load(self):
         """
         Load one corpus file as one line , and get random {self.length} words as result
@@ -51,7 +66,9 @@ class ChnCorpus(Corpus):
                 line_striped = line_striped.replace('\u3000', ' ')
                 line_striped = line_striped.replace('&nbsp', '')
                 line_striped = line_striped.replace("\00", "")
-                line_striped = self.strQ2B(line_striped)
+                line_striped = line_striped.replace("()", "")
+                line_striped = line_striped.replace("[]", "")
+                #line_striped = self.strQ2B(line_striped)
                 if line_striped != u'' and len(line.strip()) > 1:
                     lines.append(line_striped)
 
@@ -82,12 +99,19 @@ class ChnCorpus(Corpus):
         line = random.choice(self.corpus)
 
         length = self.length
-
-        if self.iseng(line):
-            length = 2 * self.length
-
+        #if self.iseng(line):
+        length = 2 * self.length
         start = np.random.randint(0, len(line) - length)
-
-        word = line[start:start + length]
+		word = ''
+		cur_len = 0
+		while cur_len < length and start < len(line):
+			c = line[start]
+			if self.ischinese(c):
+				cur_len += 2
+			else:
+				cur_len += 1
+			word += line[start]
+			
+        #word = line[start:start + length]
         #不能让文本的开始和结束有空格的出现
         return word.strip(' '), self.iseng(line)

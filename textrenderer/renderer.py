@@ -648,7 +648,8 @@ class Renderer(object):
 
 
     def add_erode(self, img):
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(1, 1))
+        radius = random.randint(1,2)
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(radius, radius))
         img = cv2.erode(img, kernel)
         return img
 
