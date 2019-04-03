@@ -4,13 +4,14 @@ import numpy as np
 import cv2
 from PIL import ImageFont, Image, ImageDraw
 from tenacity import retry
-
+import time
 import libs.math_utils as math_utils
 from libs.utils import draw_box, draw_bbox, prob, apply
 from libs.timer import Timer
 from textrenderer.liner import Liner
 from textrenderer.noiser import Noiser
 import libs.font_utils as font_utils
+from textrenderer.background_generator import BackgroundGenerator
 
 # noinspection PyMethodMayBeStatic
 from textrenderer.remaper import Remaper
@@ -43,20 +44,31 @@ class Renderer(object):
         if self.strict:
             self.font_unsupport_chars = font_utils.get_unsupported_chars(self.fonts, corpus.chars_file)
 
+    def start(self):
+        return time.time()
+    
+    def end(self, t , msg = ""):
+        return
+        print(msg + " took {:.3f}s".format(time.time() - t))
+
     def gen_img(self, img_index):
+        t = self.start()
         word, font, word_size = self.pick_font(img_index)
+        self.end(t, "pick_font")
         self.dmsg("after pick font")
 
         # Background's height should much larger than raw word image's height,
         # to make sure we can crop full word image after apply perspective
-        bg = self.gen_bg(width=word_size[0] * 8, height=word_size[1] * 8)
+        t = self.start()
+        bg = self.gen_bg(width=word_size[0] * 2, height=word_size[1] * 2)
         word_img, text_box_pnts, word_color = self.draw_text_on_bg(word, font, bg)
+        self.end(t, "gen_bg & draw_text_on_bg")
         #print ("Before Apply", word_size, word_img.shape)
         self.dmsg("After draw_text_on_bg")
-
+        t = self.start()
         if apply(self.cfg.crop):
             text_box_pnts = self.apply_crop(text_box_pnts, self.cfg.crop)
-        
+        self.end(t, "apply crop ")
         if apply(self.cfg.line):
             word_img, text_box_pnts = self.liner.apply(word_img, text_box_pnts, word_color)
             self.dmsg("After draw line")
@@ -76,22 +88,24 @@ class Renderer(object):
 
         #plt.imshow(word_img)
         #plt.show()
+        t = self.start()
         word_img, img_pnts_transformed, text_box_pnts_transformed = \
             self.apply_perspective_transform(word_img, text_box_pnts,
                                              max_x=self.cfg.perspective_transform.max_x,
                                              max_y=self.cfg.perspective_transform.max_y,
                                              max_z=self.cfg.perspective_transform.max_z,
                                              gpu=self.gpu)
+        self.end(t, "apply apply_perspective_transform ")
         #plt.imshow(test_image)
         #plt.show()
         self.dmsg("After perspective transform")
-
+        t = self.start()
         if self.debug:
             _, crop_bbox = self.crop_img(word_img, text_box_pnts_transformed)
             word_img = draw_bbox(word_img, crop_bbox, (255, 0, 0))
         else:
             word_img, crop_bbox = self.crop_img(word_img, text_box_pnts_transformed)
-
+        self.end(t, "apply crop_img ")
         self.dmsg("After crop_img")
 
         if apply(self.cfg.noise):
@@ -113,6 +127,8 @@ class Renderer(object):
                 word_img = self.apply_prydown(word_img)
                 self.dmsg("After prydown")
 
+       
+        t = self.start()
         word_img = np.clip(word_img, 0., 255.)
 
         if apply(self.cfg.reverse_color):
@@ -133,7 +149,7 @@ class Renderer(object):
         if apply(self.cfg.dilate):
             word_img = self.add_dilate(word_img)
 
-
+        self.end(t, "apply2 ")
         return word_img, word
 
     def dmsg(self, msg):
@@ -238,6 +254,7 @@ class Renderer(object):
         #print (word_roi_bg[word_roi_bg < 32].shape)
         #黑色的太多了，那么PASS掉
         if word_roi_bg[word_roi_bg < 32].shape[0] > 200 :
+            raise Exception()
             return None
             #plt.imshow(bg)
             #plt.show()
@@ -275,6 +292,14 @@ class Renderer(object):
         draw = ImageDraw.Draw(pil_img)
         max_x = bg_width - word_width - 10
         max_y = bg_height - word_height - 10
+
+        if max_x < 0:
+            print ("Max_x : ", max_x, "bg_width : ", bg_width, "word_width : ", word_width)
+        
+        if max_y < 0:
+            print ("Max_y : ", max_y, "bg_height : ", bg_height, "word_height : ", word_height)
+
+
         #增加位置随机
         text_x = random.randint(10, max_x)
         text_y = random.randint(10, max_y)
@@ -448,14 +473,24 @@ class Renderer(object):
         """
         Generate random background
         """
-        bg_high = random.uniform(220, 255)
-        bg_low = bg_high - random.uniform(0, 128)
-
-        bg = np.random.randint(bg_low, bg_high, (height, width)).astype(np.uint8)
-
-        bg = self.apply_gauss_blur(bg)
-
-        return bg
+        r = random.randint(1, 4) 
+        if r == 1:
+            return np.array(BackgroundGenerator().quasicrystal(height, width))
+        if r == 2:   
+            bg_high = random.uniform(220, 255)
+            bg_low = bg_high - random.uniform(0, 128)
+            bg = np.random.randint(bg_low, bg_high, (height, width)).astype(np.uint8)
+            if random.randint(1,4) < 4:
+                bg = self.apply_gauss_blur(bg)
+            return bg
+        if r == 3:  
+            return np.array(BackgroundGenerator().gaussian_noise(height, width)) 
+        if r == 4: 
+            bg = np.random.randint(220, 255, (height, width)).astype(np.uint8)
+            if random.randint(1,4) < 4:
+                bg = self.apply_gauss_blur(bg)
+            return bg
+           
 
     def gen_bg_from_image(self, width, height):
         """
