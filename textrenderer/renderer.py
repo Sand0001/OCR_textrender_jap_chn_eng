@@ -290,22 +290,10 @@ class Renderer(object):
 
         pil_img = Image.fromarray(np.uint8(bg))
         draw = ImageDraw.Draw(pil_img)
-        max_x = bg_width - word_width - 10
-        max_y = bg_height - word_height - 10
-
-        if max_x < 0:
-            print ("Max_x : ", max_x, "bg_width : ", bg_width, "word_width : ", word_width)
         
-        if max_y < 0:
-            print ("Max_y : ", max_y, "bg_height : ", bg_height, "word_height : ", word_height)
-
-
-        #增加位置随机
-        text_x = random.randint(10, max_x)
-        text_y = random.randint(10, max_y)
-        # Draw text in the center of bg
-        #text_x = int((bg_width - word_width) / 2)
-        #text_y = int((bg_height - word_height) / 2)
+        #Draw text in the center of bg
+        text_x = int((bg_width - word_width) / 2)
+        text_y = int((bg_height - word_height) / 2)
 
         word_color = self.get_word_color(bg, text_x, text_y, word_height, word_width)
 
