@@ -463,20 +463,24 @@ class Renderer(object):
         """
         r = random.randint(1, 4) 
         if r == 1:
-            return np.array(BackgroundGenerator().quasicrystal(height, width))
+            bg = np.array(BackgroundGenerator().quasicrystal(height, width))
+            bg = self.apply_gauss_blur(bg)
+            return bg
         if r == 2:   
             bg_high = random.uniform(220, 255)
             bg_low = bg_high - random.uniform(0, 128)
             bg = np.random.randint(bg_low, bg_high, (height, width)).astype(np.uint8)
-            if random.randint(1,4) < 4:
-                bg = self.apply_gauss_blur(bg)
+            #if random.randint(1,4) < 4:
+            bg = self.apply_gauss_blur(bg)
             return bg
         if r == 3:  
-            return np.array(BackgroundGenerator().gaussian_noise(height, width)) 
+            bg = np.array(BackgroundGenerator().gaussian_noise(height, width))
+            bg = self.apply_gauss_blur(bg)
+            return bg 
         if r == 4: 
             bg = np.random.randint(220, 255, (height, width)).astype(np.uint8)
-            if random.randint(1,4) < 4:
-                bg = self.apply_gauss_blur(bg)
+            #if random.randint(1,4) < 4:
+            bg = self.apply_gauss_blur(bg)
             return bg
            
 
