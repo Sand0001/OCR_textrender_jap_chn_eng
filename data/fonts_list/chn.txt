@@ -80,7 +80,6 @@
 ./data/fonts/eng/RobotoCondensed-Light.ttf
 ./data/fonts/eng/RobotoCondensed-LightItalic.ttf
 ./data/fonts/eng/RobotoCondensed-Regular.ttf
-./data/fonts/eng/SEASRN__.ttf
 ./data/fonts/eng/Sansation-Bold.ttf
 ./data/fonts/eng/Sansation-BoldItalic.ttf
 ./data/fonts/eng/Sansation-Italic.ttf
