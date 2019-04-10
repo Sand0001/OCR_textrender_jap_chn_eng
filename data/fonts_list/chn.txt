@@ -8,11 +8,6 @@
 ./data/fonts/eng/Aller_Lt.ttf
 ./data/fonts/eng/Aller_LtIt.ttf
 ./data/fonts/eng/Aller_Rg.ttf
-./data/fonts/eng/Amatic-Bold.ttf
-./data/fonts/eng/AmaticSC-Regular.ttf
-./data/fonts/eng/BEBAS___.ttf
-./data/fonts/eng/Capture_it.ttf
-./data/fonts/eng/Capture_it_2.ttf
 ./data/fonts/eng/CaviarDreams.ttf
 ./data/fonts/eng/CaviarDreams_BoldItalic.ttf
 ./data/fonts/eng/CaviarDreams_Italic.ttf
