@@ -1,7 +1,6 @@
 ./data/fonts/chn/msyh.ttc
 ./data/fonts/chn/Songti.ttc
 ./data/fonts/eng/Hack-Regular.ttf
-./data/fonts/eng/AllerDisplay.ttf
 ./data/fonts/eng/Aller_Bd.ttf
 ./data/fonts/eng/Aller_BdIt.ttf
 ./data/fonts/eng/Aller_It.ttf

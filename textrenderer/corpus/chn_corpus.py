@@ -48,11 +48,20 @@ class ChnCorpus(Corpus):
                 return True
         return False
 
+
+    def load_balanced_sample(self):
+        self.single_words_list = []
+        for line in open("./data/corpus/singleword.dat"):
+            parts = line.split(' ')
+            self.single_words_list.append(parts[0])
+        print ("Load Single Word List : ", len(self.single_words_list))
+
     def load(self):
         """
         Load one corpus file as one line , and get random {self.length} words as result
         """
         self.load_corpus_path()
+        self.load_balanced_sample()
 
         for i, p in enumerate(self.corpus_path):
             print_end = '\n' if i == len(self.corpus_path) - 1 else '\r'
@@ -98,6 +107,17 @@ class ChnCorpus(Corpus):
 
     def get_sample(self, img_index):
         # 每次 gen_word，随机选一个预料文件，随机获得长度为 word_length 的字符
+
+        #补充一下单字，特别是那种频次特别低的单字
+        r = random.randint(0, 15)
+        #print (r, len(self.single_words_list))
+        if r == 0 and len(self.single_words_list) > 0:
+            word = ''
+            for i in range(0, self.length):
+                r_i = random.randint(0, len(self.single_words_list) - 1)   
+                word += self.single_words_list[r_i]
+            return word, self.iseng(word)
+
         line = random.choice(self.corpus)
 
         length = self.length
@@ -106,6 +126,8 @@ class ChnCorpus(Corpus):
         start = np.random.randint(0, len(line) - length)
         word = ''
         cur_len = 0
+        rand_len = length  +  (random.randint(0, 20) - 5)
+        length = rand_len
         while cur_len < length and start < len(line):
             c = line[start]
             if self.ischinese(c):
