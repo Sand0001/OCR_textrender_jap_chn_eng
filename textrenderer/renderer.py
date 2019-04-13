@@ -243,7 +243,8 @@ class Renderer(object):
         """
         Only use word roi area to get word color
         """
-        offset = 10
+        #offset = 10
+        offset = 0
         ymin = text_y - offset
         ymax = text_y + word_height + offset
         xmin = text_x - offset
@@ -287,13 +288,17 @@ class Renderer(object):
         word_width = word_size[0]
 
         offset = font.getoffset(word)
-
+        
         pil_img = Image.fromarray(np.uint8(bg))
         draw = ImageDraw.Draw(pil_img)
         
+        text_x = random.randint(0, bg_width - word_width)
+        text_y = random.randint(0, bg_height - word_height)
+
+        #print ("BG_H_W : ( ", bg_height, bg_width,  ")", " Offset : (" , offset , ")", " WordSize : (", word_size, ")", "Text_x", text_x, "Text_y", text_y)
         #Draw text in the center of bg
-        text_x = int((bg_width - word_width) / 2)
-        text_y = int((bg_height - word_height) / 2)
+        #text_x = int((bg_width - word_width) / 2)
+        #text_y = int((bg_height - word_height) / 2)
 
         word_color = self.get_word_color(bg, text_x, text_y, word_height, word_width)
 
