@@ -126,7 +126,7 @@ class ChnCorpus(Corpus):
         start = np.random.randint(0, len(line) - length)
         word = ''
         cur_len = 0
-        rand_len = length  +  (random.randint(0, 20) - 5)
+        rand_len = length  +  (random.randint(0, 8) - 4)
         length = rand_len
         while cur_len < length and start < len(line):
             c = line[start]

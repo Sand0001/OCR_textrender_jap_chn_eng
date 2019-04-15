@@ -44,12 +44,27 @@ class Renderer(object):
         if self.strict:
             self.font_unsupport_chars = font_utils.get_unsupported_chars(self.fonts, corpus.chars_file)
 
+
+        self.show = False
+
     def start(self):
         return time.time()
     
     def end(self, t , msg = ""):
         return
         print(msg + " took {:.3f}s".format(time.time() - t))
+
+
+    def plt_show (self,word_img, text_box_pnts = None, title = None):
+        test_img = np.clip(word_img, 0., 255.)
+        if text_box_pnts is not None:
+            test_img = draw_box(test_img, text_box_pnts, (0, 255, 155))
+        #print (test_img)
+        test_img = Image.fromarray(test_img.astype('uint8')).convert('RGB')
+        if title is not None:
+            plt.title(title,fontsize='large',fontweight='bold')
+        plt.imshow(test_img)
+        plt.show()
 
     def gen_img(self, img_index):
         t = self.start()
@@ -60,8 +75,15 @@ class Renderer(object):
         # Background's height should much larger than raw word image's height,
         # to make sure we can crop full word image after apply perspective
         t = self.start()
-        bg = self.gen_bg(width=word_size[0] * 2, height=word_size[1] * 2)
+        if self.show:
+            print ("Word_Size :", word_size,' WORD:', word)
+        #如果Wordsize特别小，乘以一个系数也是有问题的
+        bg = self.gen_bg(width=word_size[0] + 280, height=word_size[1]  +  96)
         word_img, text_box_pnts, word_color = self.draw_text_on_bg(word, font, bg)
+        if self.show:
+            print ("BG SHAPE : ", bg.shape)
+            print ("Word Image : ", word_img.shape)
+            print ("text_box_pnts : ", text_box_pnts)
         self.end(t, "gen_bg & draw_text_on_bg")
         #print ("Before Apply", word_size, word_img.shape)
         self.dmsg("After draw_text_on_bg")
@@ -78,6 +100,8 @@ class Renderer(object):
         #plt.show()
         if self.debug:
             word_img = draw_box(word_img, text_box_pnts, (0, 255, 155))
+        if self.show:
+            self.plt_show(word_img, text_box_pnts, title = "before Transform")
 
         if apply(self.cfg.curve):
             word_img, text_box_pnts = self.remaper.apply(word_img, text_box_pnts, word_color)
@@ -89,14 +113,18 @@ class Renderer(object):
         #plt.imshow(word_img)
         #plt.show()
         t = self.start()
+        #print ("Before transform ", word_img.shape)
         word_img, img_pnts_transformed, text_box_pnts_transformed = \
             self.apply_perspective_transform(word_img, text_box_pnts,
                                              max_x=self.cfg.perspective_transform.max_x,
                                              max_y=self.cfg.perspective_transform.max_y,
                                              max_z=self.cfg.perspective_transform.max_z,
                                              gpu=self.gpu)
+        if self.show:
+            print ("text_box_pnts_transformed : ", text_box_pnts_transformed)
+            self.plt_show(word_img, text_box_pnts_transformed, title= "After Transform")
         self.end(t, "apply apply_perspective_transform ")
-        #plt.imshow(test_image)
+        #plt.imshow(word_img)
         #plt.show()
         self.dmsg("After perspective transform")
         t = self.start()
@@ -104,9 +132,19 @@ class Renderer(object):
             _, crop_bbox = self.crop_img(word_img, text_box_pnts_transformed)
             word_img = draw_bbox(word_img, crop_bbox, (255, 0, 0))
         else:
+            #all bad comes from here, why leaving some padding?
             word_img, crop_bbox = self.crop_img(word_img, text_box_pnts_transformed)
-        self.end(t, "apply crop_img ")
-        self.dmsg("After crop_img")
+        if self.show:
+            print ("AFTER CROP")
+            #左下, 右下, 右上，左上
+            startx = crop_bbox[0]
+            starty = crop_bbox[1]
+            xwidth = crop_bbox[2]
+            yheight = crop_bbox[3]
+            text_box_pnts = [[startx, starty], [startx + xwidth, starty], [startx + xwidth, starty + yheight], [startx, starty + yheight]]
+            self.plt_show(word_img, text_box_pnts, title = "After Crop")
+            self.end(t, "apply crop_img ")
+            self.dmsg("After crop_img")
 
         if apply(self.cfg.noise):
             word_img = np.clip(word_img, 0., 255.)
@@ -130,7 +168,8 @@ class Renderer(object):
        
         t = self.start()
         word_img = np.clip(word_img, 0., 255.)
-
+        #print (word_img.shape)
+        
         if apply(self.cfg.reverse_color):
             word_img = self.reverse_img(word_img)
             self.dmsg("After reverse_img")
@@ -200,17 +239,21 @@ class Renderer(object):
         # we should do something to prevent text too small
 
         # dst_height and dst_width is used to leave some padding around text bbox
-        dst_height = random.randint(self.out_height // 4 * 3, self.out_height)
+
+        dst_height = random.randint(self.out_height // 8 * 7, self.out_height)
+
+        #dst_height = random.randint(self.out_height // 4 * 3, self.out_height)
 
         if self.out_width == 0:
             scale = bbox_height / dst_height
         else:
             dst_width = self.out_width
             scale = max(bbox_height / dst_height, bbox_width / self.out_width)
+       
         #print("dst_width : ", dst_width, " out_width : ", self.out_width, "bbox_width : ", bbox_width, "bbox_height : ", bbox_height, "scale : " , scale)
         s_bbox_width = math.ceil(bbox_width / scale)
         s_bbox_height = math.ceil(bbox_height / scale)
-
+            
         if self.out_width == 0:
             padding = random.randint(s_bbox_width // 10, s_bbox_width // 8)
             dst_width = s_bbox_width + padding * 2
@@ -220,7 +263,16 @@ class Renderer(object):
                   np.around(bbox[2] / scale),
                   np.around(bbox[3] / scale))
 
+        
+
+
         x_offset, y_offset = self.random_xy_offset(s_bbox_height, s_bbox_width, self.out_height, dst_width)
+        #y_offset = 0
+        #这里会出现极端情况可能出现负值
+        if (s_bbox[0] - x_offset) < 0:
+            print ("FUCKING ERROR")
+        if (s_bbox[1] - y_offset < 0):
+            print ("FUCKING Y_ERROR")
 
         dst_bbox = (
             self.int_around((s_bbox[0] - x_offset) * scale),
@@ -228,10 +280,26 @@ class Renderer(object):
             self.int_around(dst_width * scale),
             self.int_around(self.out_height * scale)
         )
-
+        '''
+        if (dst_bbox[0] + dst_bbox[2] > bbox[0] + bbox[2]):
+            #超出边界了呀
+            print ("FUCKING ERROR XWidth ", dst_bbox[0] ,dst_bbox[2], bbox[0],  bbox[2])
+        if (dst_bbox[1] + dst_bbox[3] > bbox[1] + bbox[3]):
+            #超出边界了呀
+            print ("FUCKING ERROR YHeight", dst_bbox[1], dst_bbox[3] , bbox[1] , bbox[3])
+        '''
+        if self.show:
+            print ("out_height", self.out_height, "rand dst_height : ", dst_height, "bbox_height : ", bbox_height,  " bbox_width : ", bbox_width, " src aspo : ", bbox_width / float(bbox_height))
+            print ("s_bbox_width : ", s_bbox_width, " s_bbox_height : ", s_bbox_height, " s_bbox : ", s_bbox)
+            print ("h_scale : ", bbox_height / dst_height, " w_scale : ", bbox_width / self.out_width,  " Sacle", scale, "s_bbox : ", s_bbox)
+            print ("x_offset : ", x_offset, " y_offset : ", y_offset)
+            print ("bbox : ", bbox, "dst_bbox : ", dst_bbox)
+            
         # It's important do crop first and than do resize for speed consider
         dst = img[dst_bbox[1]:dst_bbox[1] + dst_bbox[3], dst_bbox[0]:dst_bbox[0] + dst_bbox[2]]
-
+        if self.show:
+            print ("Before Resize : ", dst.shape)
+            self.plt_show(dst)
         dst = cv2.resize(dst, (dst_width, self.out_height), interpolation=cv2.INTER_CUBIC)
 
         return dst, dst_bbox
@@ -292,14 +360,15 @@ class Renderer(object):
         pil_img = Image.fromarray(np.uint8(bg))
         draw = ImageDraw.Draw(pil_img)
         
-        text_x = random.randint(0, bg_width - word_width)
-        text_y = random.randint(0, bg_height - word_height)
+        #text_x = random.randint(50, bg_width - word_width - 50)
+        #text_y = random.randint(50, bg_height - word_height - 50)
 
         #print ("BG_H_W : ( ", bg_height, bg_width,  ")", " Offset : (" , offset , ")", " WordSize : (", word_size, ")", "Text_x", text_x, "Text_y", text_y)
         #Draw text in the center of bg
-        #text_x = int((bg_width - word_width) / 2)
-        #text_y = int((bg_height - word_height) / 2)
-
+        text_x = int((bg_width - word_width) / 2)
+        text_y = int((bg_height - word_height) / 2)
+        if self.show:
+            print ("BG_H_W : ( ", bg_height, bg_width,  ")", " Offset : (" , offset , ")", " WordSize : (", word_size, ")", "Text_x", text_x, "Text_y", text_y)
         word_color = self.get_word_color(bg, text_x, text_y, word_height, word_width)
 
         if word_color is None:
@@ -582,7 +651,11 @@ class Renderer(object):
 
         x = math_utils.cliped_rand_norm(0, max_x)
         y = math_utils.cliped_rand_norm(0, max_y)
-        z = math_utils.cliped_rand_norm(0, max_z)
+        #有一部分数据是正常的，没有经过旋转
+        if (prob(0.2)):
+            z = 0
+        else:
+            z = math_utils.cliped_rand_norm(0, max_z)
 
         # print("x: %f, y: %f, z: %f" % (x, y, z))
 
