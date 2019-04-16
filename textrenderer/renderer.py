@@ -271,8 +271,10 @@ class Renderer(object):
         #这里会出现极端情况可能出现负值
         if (s_bbox[0] - x_offset) < 0:
             print ("FUCKING ERROR")
+            return None
         if (s_bbox[1] - y_offset < 0):
             print ("FUCKING Y_ERROR")
+            return None
 
         dst_bbox = (
             self.int_around((s_bbox[0] - x_offset) * scale),
