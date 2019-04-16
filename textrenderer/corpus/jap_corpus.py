@@ -4,7 +4,14 @@ import numpy as np
 from textrenderer.corpus.corpus import Corpus
 
 
-class ChnCorpus(Corpus):
+class JAPCorpus(Corpus):
+
+
+    def load_chars(self):
+        self.chars = set()
+        for line in open("./data/chars/japchn.txt"):
+            self.chars.add(line.strip('\r\n'))
+        print ("Load JAPCHN CHARS : ", len(self.chars))
 
     def strQ2B(self, ustring):
         """全角转半角"""
@@ -46,6 +53,19 @@ class ChnCorpus(Corpus):
                 return True
         return False
 
+    def isjap(self, word):
+        jap_num = 0 
+        for ch in word:
+            #if '\u0800' <= ch <= '\u4e00':
+            #    jap_num += 1
+            if '\u3040' <= ch <= '\u309F': #Hiragana
+                return True
+            if '\u30A0' <= ch <= '\u30FF': #Katakana
+                return True
+            #与汉字重叠了，只看片假名吧
+            #if '\u4E00' <= ch <= '\u9FBF': #Kanji
+                #jap_num += 1
+        return False
 
     def load_balanced_sample(self):
         self.single_words_list = []
@@ -58,8 +78,9 @@ class ChnCorpus(Corpus):
         """
         Load one corpus file as one line , and get random {self.length} words as result
         """
+        self.load_chars()
         self.load_corpus_path()
-        self.load_balanced_sample()
+        #self.load_balanced_sample()
 
         for i, p in enumerate(self.corpus_path):
             print_end = '\n' if i == len(self.corpus_path) - 1 else '\r'
@@ -98,7 +119,7 @@ class ChnCorpus(Corpus):
             self.probability = [len(l) / float(total_len) for l in self.corpus]
             '''
             # 在 crnn/libs/label_converter 中 encode 时还会进行过滤
-            whole_line = ''.join(filter(lambda x: x in self.charsets, whole_line))
+            whole_line = ''.join(filter(lambda x: x in self.chars, whole_line))
             
             if len(whole_line) > self.length:
                 self.corpus.append(whole_line)
@@ -137,7 +158,9 @@ class ChnCorpus(Corpus):
         language = 'chn'
         if self.iseng(line):
             language = 'eng'
-
+        if self.isjap(line[0:10]):
+            language = 'jap'
+        print (line[0:10], language)
         #word = line[start:start + length]
         #不能让文本的开始和结束有空格的出现
         return word.strip(' '), language

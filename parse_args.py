@@ -6,9 +6,9 @@ import os
 def parse_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--num_img', type=int, default=80, help="Number of images to generate")
+    parser.add_argument('--num_img', type=int, default=40, help="Number of images to generate")
 
-    parser.add_argument('--length', type=int, default=30,
+    parser.add_argument('--length', type=int, default=10,
                         help='Chars(chn) or words(eng) in a image. For eng corpus mode, default length is 3')
 
     parser.add_argument('--clip_max_chars', action='store_true', default=False,
@@ -16,7 +16,7 @@ def parse_args():
                              'should less then the width of last CNN layer.')
 
     parser.add_argument('--img_height', type=int, default=32)
-    parser.add_argument('--img_width', type=int, default=600,
+    parser.add_argument('--img_width', type=int, default=280,
                         help="If 0, output images will have different width")
 
     parser.add_argument('--chars_file', type=str, default='./data/chars/chn.txt',
@@ -36,10 +36,11 @@ def parse_args():
                         help='When corpus_mode is chn or eng, text on image will randomly selected from corpus.'
                              'Recursively find all txt file in corpus_dir')
 
-    parser.add_argument('--corpus_mode', type=str, default='chn', choices=['random', 'chn', 'eng', 'list'],
+    parser.add_argument('--corpus_mode', type=str, default='jap', choices=['random', 'chn', 'eng', 'list', 'jap'],
                         help='Different corpus type have different load/get_sample method'
                              'random: random pick chars from chars file'
                              'chn: pick continuous chars from corpus'
+                             'jap: pick continuous chars from corpus'
                              'eng: pick continuous words from corpus, space is included in label')
 
     parser.add_argument('--output_dir', type=str, default='./output', help='Images save dir')

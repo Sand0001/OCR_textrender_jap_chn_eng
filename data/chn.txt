@@ -1,12 +1,23 @@
-./data/fonts/chn/msyh.ttc
+#./data/fonts/chn/msyh.ttc
+#./data/fonts/chn/Hiragino Sans GB.ttc
+#./data/fonts/chn/NISC18030.ttf
+./data/fonts/chn/PingFang.ttc
+#./data/fonts/chn/STHeiti Light.ttc
+#./data/fonts/chn/STHeiti Medium.ttc
 ./data/fonts/chn/Songti.ttc
 ./data/fonts/eng/Hack-Regular.ttf
+./data/fonts/eng/AllerDisplay.ttf
 ./data/fonts/eng/Aller_Bd.ttf
 ./data/fonts/eng/Aller_BdIt.ttf
 ./data/fonts/eng/Aller_It.ttf
 ./data/fonts/eng/Aller_Lt.ttf
 ./data/fonts/eng/Aller_LtIt.ttf
 ./data/fonts/eng/Aller_Rg.ttf
+./data/fonts/eng/Amatic-Bold.ttf
+./data/fonts/eng/AmaticSC-Regular.ttf
+./data/fonts/eng/BEBAS___.ttf
+./data/fonts/eng/Capture_it.ttf
+./data/fonts/eng/Capture_it_2.ttf
 ./data/fonts/eng/CaviarDreams.ttf
 ./data/fonts/eng/CaviarDreams_BoldItalic.ttf
 ./data/fonts/eng/CaviarDreams_Italic.ttf
@@ -79,6 +90,7 @@
 ./data/fonts/eng/RobotoCondensed-Light.ttf
 ./data/fonts/eng/RobotoCondensed-LightItalic.ttf
 ./data/fonts/eng/RobotoCondensed-Regular.ttf
+./data/fonts/eng/SEASRN__.ttf
 ./data/fonts/eng/Sansation-Bold.ttf
 ./data/fonts/eng/Sansation-BoldItalic.ttf
 ./data/fonts/eng/Sansation-Italic.ttf
@@ -94,8 +106,3 @@
 ./data/fonts/eng/Walkway_Oblique_UltraBold.ttf
 ./data/fonts/eng/Walkway_SemiBold.ttf
 ./data/fonts/eng/Walkway_UltraBold.ttf
-./data/fonts/jap/YuGothic-Bold.otf
-./data/fonts/jap/YuGothic-Medium.otf
-./data/fonts/jap/ToppanBunkyuMinchoPr6N-Regular.otf
-./data/fonts/jap/ToppanBunkyuMidashiMinchoStdN-ExtraBold.otf
-./data/fonts/jap/ToppanBunkyuMidashiGothicStdN-ExtraBold.otf

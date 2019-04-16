@@ -596,7 +596,7 @@ class Renderer(object):
             font: truetype
             size: word size, removed offset (width, height)
         """
-        word, iseng = self.corpus.get_sample(img_index)
+        word, language = self.corpus.get_sample(img_index)
 
         if self.clip_max_chars and len(word) > self.max_chars:
             word = word[:self.max_chars]
@@ -604,10 +604,14 @@ class Renderer(object):
         #font_dct = random.choice(self.fonts)
         #different lang  should have different fonts
         #print(font_dct)
-        if iseng:
+        if language == 'eng':
             font_path = random.choice(font_dct['eng'])
         else:
-            font_path = random.choice(font_dct['chn'])
+            if language == 'jap':
+                font_path = random.choice(font_dct['jap'])
+            else:
+                font_path = random.choice(font_dct['chn'])
+        print (language, font_path)
         if self.strict:
             unsupport_chars = self.font_unsupport_chars[font_path]
             for c in word:
