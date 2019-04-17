@@ -85,6 +85,10 @@
 ./data/fonts/eng/Sansation-Light.ttf
 ./data/fonts/eng/Sansation-LightItalic.ttf
 ./data/fonts/eng/Sansation-Regular.ttf
+./data/fonts/eng/Times New Roman Bold Italic.ttf
+./data/fonts/eng/Times New Roman Bold.ttf
+./data/fonts/eng/Times New Roman Italic.ttf
+./data/fonts/eng/Times New Roman.ttf
 ./data/fonts/eng/Walkway_Black.ttf
 ./data/fonts/eng/Walkway_Bold.ttf
 ./data/fonts/eng/Walkway_Oblique.ttf
