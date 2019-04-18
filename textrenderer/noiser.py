@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import random
 
 
 # https://stackoverflow.com/questions/22937589/how-to-add-noise-gaussian-salt-and-pepper-etc-to-image-in-python-with-opencv
@@ -74,13 +75,17 @@ class Noiser(object):
         num_salt = np.ceil(amount * img.size * s_vs_p)
         coords = [np.random.randint(0, i - 1, int(num_salt))
                   for i in img.shape]
-        out[coords] = 255.
+        pixel = random.randint(200, 255)
+        out[coords] = pixel
+        #print (pixel)
 
         # Pepper mode
         num_pepper = np.ceil(amount * img.size * (1. - s_vs_p))
         coords = [np.random.randint(0, i - 1, int(num_pepper))
                   for i in img.shape]
-        out[coords] = 0
+        pixel = random.randint(0, 55)
+        out[coords] = pixel
+        #print (pixel)
         return out
 
     def apply_poisson_noise(self, img):

@@ -160,7 +160,7 @@ class JAPCorpus(Corpus):
             language = 'eng'
         if self.isjap(line[0:10]):
             language = 'jap'
-        print (line[0:10], language)
+        #print (line[0:10], language)
         #word = line[start:start + length]
         #不能让文本的开始和结束有空格的出现
         return word.strip(' '), language

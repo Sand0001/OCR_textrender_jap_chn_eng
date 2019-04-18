@@ -611,7 +611,7 @@ class Renderer(object):
                 font_path = random.choice(font_dct['jap'])
             else:
                 font_path = random.choice(font_dct['chn'])
-        print (language, font_path)
+        #print (language, font_path)
         if self.strict:
             unsupport_chars = self.font_unsupport_chars[font_path]
             for c in word:
@@ -760,7 +760,14 @@ class Renderer(object):
 
 
     def add_erode(self, img):
-        radius = random.randint(1,2)
+    
+        radius = random.randint(2,3)
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(radius, radius))
+
+        #return cv2.morphologyEx(img, cv2.MORPH_GRADIENT, kernel)
+
+        img = cv2.dilate(img,kernel)
+        radius = random.randint(2,3)
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(radius, radius))
         img = cv2.erode(img, kernel)
         return img
