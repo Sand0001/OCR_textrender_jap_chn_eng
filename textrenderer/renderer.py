@@ -55,6 +55,21 @@ class Renderer(object):
         print(msg + " took {:.3f}s".format(time.time() - t))
 
 
+    def plt_show_list (self,word_img, text_box_pnts_list = None, title = None):
+        test_img = np.clip(word_img, 0., 255.)
+        i = 0
+        if text_box_pnts_list is not None:
+            for text_box_pnts in text_box_pnts_list:
+                i += 1
+                test_img = draw_box(test_img, text_box_pnts, (0, 255, i * 25 % 255))
+        #print (test_img)
+        test_img = Image.fromarray(test_img.astype('uint8')).convert('RGB')
+        if title is not None:
+            plt.title(title,fontsize='large',fontweight='bold')
+        plt.imshow(test_img)
+        plt.show()
+
+
     def plt_show (self,word_img, text_box_pnts = None, title = None):
         test_img = np.clip(word_img, 0., 255.)
         if text_box_pnts is not None:
@@ -201,21 +216,26 @@ class Renderer(object):
         Normally dst_height>src_height and dst_width>src_width
         """
         y_max_offset = 0
+        #20%的样本, 增加1像素的扰动
+        #if (prob(0.2)):
+        max_step_create_rnd_crop = 2
+        #else:
+        #max_step_create_rnd_crop = 0
         if dst_height > src_height:
-            y_max_offset = dst_height - src_height
+            y_max_offset = dst_height - src_height + max_step_create_rnd_crop
 
         x_max_offset = 0
         if dst_width > src_width:
-            x_max_offset = dst_width - src_width
+            x_max_offset = dst_width - src_width + max_step_create_rnd_crop
 
         y_offset = 0
-        if y_max_offset != 0:
-            y_offset = random.randint(0, y_max_offset)
+        if y_max_offset >= 0:
+            y_offset = random.randint(0, y_max_offset) - max_step_create_rnd_crop // 2
 
         x_offset = 0
-        if x_max_offset != 0:
-            x_offset = random.randint(0, x_max_offset)
-
+        if x_max_offset >= 0:
+            x_offset = random.randint(0, x_max_offset) - max_step_create_rnd_crop // 2
+        print("OFFSET : ", x_offset, y_offset, x_max_offset, y_max_offset)
         return x_offset, y_offset
 
     def crop_img(self, img, text_box_pnts_transformed):
@@ -265,7 +285,7 @@ class Renderer(object):
 
         
 
-
+        #增加一下随机，变成裁剪效果，这样才能精确的控制裁剪到字体
         x_offset, y_offset = self.random_xy_offset(s_bbox_height, s_bbox_width, self.out_height, dst_width)
         #y_offset = 0
         #这里会出现极端情况可能出现负值
@@ -296,8 +316,16 @@ class Renderer(object):
             print ("h_scale : ", bbox_height / dst_height, " w_scale : ", bbox_width / self.out_width,  " Sacle", scale, "s_bbox : ", s_bbox)
             print ("x_offset : ", x_offset, " y_offset : ", y_offset)
             print ("bbox : ", bbox, "dst_bbox : ", dst_bbox)
+            text_box_pnts = [
+                            [dst_bbox[0], dst_bbox[1]] , 
+                            [dst_bbox[0] + dst_bbox[2] , dst_bbox[1]], 
+                            [dst_bbox[0] + dst_bbox[2] , dst_bbox[1] + dst_bbox[3]],
+                            [dst_bbox[0] , dst_bbox[1] + dst_bbox[3]]
+                            ]
+            self.plt_show_list(img, [text_box_pnts_transformed,text_box_pnts], title= "before crop_resize")
             
         # It's important do crop first and than do resize for speed consider
+        #img 是 宽 * 高
         dst = img[dst_bbox[1]:dst_bbox[1] + dst_bbox[3], dst_bbox[0]:dst_bbox[0] + dst_bbox[2]]
         if self.show:
             print ("Before Resize : ", dst.shape)
@@ -703,6 +731,7 @@ class Renderer(object):
         模糊图像，模拟小图片放大的效果
         """
         scale = random.uniform(1, self.cfg.prydown.max_scale)
+        #scale = 2.2
         height = img.shape[0]
         width = img.shape[1]
 
@@ -761,20 +790,20 @@ class Renderer(object):
 
     def add_erode(self, img):
     
-        radius = random.randint(2,3)
+        radius = random.randint(3,3)
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(radius, radius))
 
         #return cv2.morphologyEx(img, cv2.MORPH_GRADIENT, kernel)
 
         img = cv2.dilate(img,kernel)
-        radius = random.randint(2,3)
+        radius = random.randint(1,3)
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(radius, radius))
         img = cv2.erode(img, kernel)
         return img
 
 
     def add_dilate(self,img):
-        radius = random.randint(1,2)
+        radius = random.randint(3,3)
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(radius, radius))
         img = cv2.dilate(img,kernel)
         return img

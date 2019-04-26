@@ -83,6 +83,10 @@ class ChnCorpus(Corpus):
 
             # 所有行合并成一行
             split_chars = ['']
+            if len(lines) > 0:
+                if self.iseng(lines[0]):
+                    split_chars = [' ']
+            
             splitchar = random.choice(split_chars)
             whole_line = splitchar.join(lines)
             '''
@@ -99,9 +103,16 @@ class ChnCorpus(Corpus):
             '''
             # 在 crnn/libs/label_converter 中 encode 时还会进行过滤
             whole_line = ''.join(filter(lambda x: x in self.charsets, whole_line))
-            
+            print (whole_line[0 : 500])
             if len(whole_line) > self.length:
                 self.corpus.append(whole_line)
+            #如果是英文的话，计算一下所有空格的位置
+            if self.iseng(whole_line):
+                self.eng_whitespace_pos_list = []
+                for i in range(0, len(whole_line)):
+                    if whole_line[i] == ' ':
+                        self.eng_whitespace_pos_list.append(i)
+            
 
     def get_sample(self, img_index):
         # 每次 gen_word，随机选一个预料文件，随机获得长度为 word_length 的字符
@@ -117,15 +128,23 @@ class ChnCorpus(Corpus):
             return word, self.iseng(word)
 
         line = random.choice(self.corpus)
-
+        
         length = self.length
         #if self.iseng(line):
         length = 2 * self.length
-        start = np.random.randint(0, len(line) - length)
+        #尝试找到一个完整单词的界限，尽量不要截断单词
+        max_step = 6
+        if self.iseng(line):
+            pos = np.random.randint(0, len(self.eng_whitespace_pos_list) - 1)
+            start = self.eng_whitespace_pos_list[pos]
+            start += 1
+        else:
+            start = np.random.randint(0, len(line) - length - max_step)
+            length = length  +  (random.randint(0, 8) - 4)
         word = ''
         cur_len = 0
-        rand_len = length  +  (random.randint(0, 8) - 4)
-        length = rand_len
+        #rand_len = length  +  (random.randint(0, 8) - 4)
+        #length = rand_len
         while cur_len < length and start < len(line):
             c = line[start]
             if self.ischinese(c):
@@ -134,10 +153,24 @@ class ChnCorpus(Corpus):
                 cur_len += 1
             word += line[start]
             start += 1
+        isalpha = lambda  x: x>= 'a' and x<='z' or x >= 'A' and x <= 'Z'
+        #如果结尾是个单词，那么往后继续查， 直到找到空格，尽量保证单词的完整性
+        if isalpha(word[len(word) - 1]):
+            while cur_len < length + max_step and start < len(line):
+                c = line[start]
+                if c == ' ':
+                    break
+                if self.ischinese(c):
+                    cur_len += 2
+                else:
+                    cur_len += 1
+                word += line[start]
+                start += 1
+
         language = 'chn'
         if self.iseng(line):
             language = 'eng'
-
+        print ("Choose Word : [", word , "]" , len(word), language)
         #word = line[start:start + length]
         #不能让文本的开始和结束有空格的出现
         return word.strip(' '), language
