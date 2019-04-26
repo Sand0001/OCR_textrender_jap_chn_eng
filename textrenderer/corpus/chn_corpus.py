@@ -103,7 +103,7 @@ class ChnCorpus(Corpus):
             '''
             # 在 crnn/libs/label_converter 中 encode 时还会进行过滤
             whole_line = ''.join(filter(lambda x: x in self.charsets, whole_line))
-            print (whole_line[0 : 500])
+            #print (whole_line[0 : 500])
             if len(whole_line) > self.length:
                 self.corpus.append(whole_line)
             #如果是英文的话，计算一下所有空格的位置
@@ -170,7 +170,7 @@ class ChnCorpus(Corpus):
         language = 'chn'
         if self.iseng(line):
             language = 'eng'
-        print ("Choose Word : [", word , "]" , len(word), language)
+        #print ("Choose Word : [", word , "]" , len(word), language)
         #word = line[start:start + length]
         #不能让文本的开始和结束有空格的出现
         return word.strip(' '), language

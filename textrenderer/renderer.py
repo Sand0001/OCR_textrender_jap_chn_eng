@@ -235,7 +235,7 @@ class Renderer(object):
         x_offset = 0
         if x_max_offset >= 0:
             x_offset = random.randint(0, x_max_offset) - max_step_create_rnd_crop // 2
-        print("OFFSET : ", x_offset, y_offset, x_max_offset, y_max_offset)
+        #print("OFFSET : ", x_offset, y_offset, x_max_offset, y_max_offset)
         return x_offset, y_offset
 
     def crop_img(self, img, text_box_pnts_transformed):
@@ -790,13 +790,11 @@ class Renderer(object):
 
     def add_erode(self, img):
     
-        radius = random.randint(3,3)
+        radius = random.randint(1,2)
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(radius, radius))
-
         #return cv2.morphologyEx(img, cv2.MORPH_GRADIENT, kernel)
-
         img = cv2.dilate(img,kernel)
-        radius = random.randint(1,3)
+        radius = random.randint(1,2)
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(radius, radius))
         img = cv2.erode(img, kernel)
         return img
