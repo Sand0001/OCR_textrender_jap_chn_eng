@@ -60,7 +60,7 @@ class ChnCorpus(Corpus):
         """
         self.load_corpus_path()
         self.load_balanced_sample()
-
+        self.has_been_created_text = {}
         for i, p in enumerate(self.corpus_path):
             print_end = '\n' if i == len(self.corpus_path) - 1 else '\r'
             print("Loading chn corpus: {}/{}".format(i + 1, len(self.corpus_path)), end=print_end)
@@ -118,13 +118,17 @@ class ChnCorpus(Corpus):
         # 每次 gen_word，随机选一个预料文件，随机获得长度为 word_length 的字符
 
         #补充一下单字，特别是那种频次特别低的单字
-        r = random.randint(0, 15)
+        r = random.randint(0, 8)
         #print (r, len(self.single_words_list))
         if r == 0 and len(self.single_words_list) > 0:
             word = ''
             for i in range(0, self.length):
                 r_i = random.randint(0, len(self.single_words_list) - 1)   
                 word += self.single_words_list[r_i]
+            #如果已经出现过了，那么Continue掉
+            if word in self.has_been_created_text:
+                return None
+            self.has_been_created_text[word] = 1
             return word, self.iseng(word)
 
         line = random.choice(self.corpus)
@@ -166,7 +170,10 @@ class ChnCorpus(Corpus):
                     cur_len += 1
                 word += line[start]
                 start += 1
-
+        word = word.strip(' ')
+        if word in self.has_been_created_text:
+            return None
+        self.has_been_created_text[word] = 1
         language = 'chn'
         if self.iseng(line):
             language = 'eng'
