@@ -70,6 +70,8 @@ class ChnCorpus(Corpus):
             lines = []
             for line in data:
                 line_striped = line.strip()
+                if len(line_striped) < 5:
+                    continue
                 line_striped = line_striped.replace('\u3000', ' ')
                 line_striped = line_striped.replace('&nbsp', '')
                 line_striped = line_striped.replace("\00", "")
