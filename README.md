@@ -92,3 +92,10 @@ You can see how perspectiveTransform works and all bounding/rotated boxes.
 
 # Todo
 See https://github.com/Sanster/text_renderer/projects/1
+
+
+
+
+构造CHARSET的时候，首先需要从数据集中获取所有字符出现的频次，
+然后根据字体支持情况，过滤掉不被支持的字符或者字体（tool/check_font.py)
+产出最终字符全集，并且将字符按照频次分档，分为高中低档
