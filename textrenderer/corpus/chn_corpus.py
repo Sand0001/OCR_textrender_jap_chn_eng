@@ -4,6 +4,17 @@ import numpy as np
 from textrenderer.corpus.corpus import Corpus
 
 
+class DIPCorpus:
+    def __init__(self):
+        self.content = ''
+        self.language = None
+        self.eng_whitespace_pos_list = []
+        self.low_char_index_dct = {}
+        self.low_charset_level_list = []
+
+    
+
+
 class ChnCorpus(Corpus):
 
     def strQ2B(self, ustring):
@@ -46,21 +57,71 @@ class ChnCorpus(Corpus):
                 return True
         return False
 
+    def prob(self, probability):
+        r = random.randint(0, 100)
+        print ("Prob : ", r)
+        if r <= probability * 100:
+            return True
+        else:
+            return False
 
     def load_balanced_sample(self):
         self.single_words_list = []
         for line in open("./data/corpus/singleword.dat"):
-            parts = line.split(' ')
+            parts = line.strip('\r\n ').split(' ')
             self.single_words_list.append(parts[0])
         print ("Load Single Word List : ", len(self.single_words_list))
+
+    def load_charset_level(self):
+        self.low_charset_level = set()
+        self.mid_charset_level = set()
+        self.high_charset_level = set()
+        for line in open("./data/chars/high_charset"):
+            #本身字符集里面就用空格
+            line = line.strip('\r\n')
+            idx = line.rindex(' ')
+            if idx <= 0:
+                continue
+            
+            #self.low_charset_level.append()
+            #self.mid_charset_level.append()
+            self.high_charset_level.add(line[0 : idx])
+            #self.single_words_list.append(parts[0])
+        print ("Load high_charset List : ", len(self.high_charset_level))
+        for line in open("./data/chars/mid_charset"):
+            line = line.strip('\r\n')
+            idx = line.rindex(' ')
+            if idx <= 0:
+                continue
+            #self.low_charset_level.append()
+            #self.mid_charset_level.append()
+            self.mid_charset_level.add(line[0 : idx])
+            #self.single_words_list.append(parts[0])
+        print ("Load mid_charset List : ", len(self.mid_charset_level))
+        for line in open("./data/chars/low_charset"):
+            line = line.strip('\r\n')
+            idx = line.rindex(' ')
+            if idx <= 0:
+                continue
+            
+            #self.low_charset_level.append()
+            #self.mid_charset_level.append()
+            self.low_charset_level.add(line[0 : idx])
+            #self.single_words_list.append(parts[0])
+        
+        print ("Load low_charset_level List : ", len(self.low_charset_level))
 
     def load(self):
         """
         Load one corpus file as one line , and get random {self.length} words as result
         """
         self.load_corpus_path()
+        self.load_charset_level()
         self.load_balanced_sample()
         self.has_been_created_text = {}
+        #记住这里多个corpus，这样的话，需要
+        #self.eng_whitespace_pos_list_dct = {}
+
         for i, p in enumerate(self.corpus_path):
             print_end = '\n' if i == len(self.corpus_path) - 1 else '\r'
             print("Loading chn corpus: {}/{}".format(i + 1, len(self.corpus_path)), end=print_end)
@@ -69,7 +130,7 @@ class ChnCorpus(Corpus):
 
             lines = []
             for line in data:
-                line_striped = line.strip()
+                line_striped = line.strip('\r\n ')
                 line_striped = line_striped.replace('\u3000', ' ')
                 line_striped = line_striped.replace('&nbsp', '')
                 line_striped = line_striped.replace("\00", "")
@@ -77,6 +138,8 @@ class ChnCorpus(Corpus):
                 line_striped = line_striped.replace("（）", "")
                 line_striped = line_striped.replace("[]", "")
                 line_striped = line_striped.replace("「」", "")
+                if len(line_striped) < 5:
+                    continue
                 #line_striped = self.strQ2B(line_striped)
                 if line_striped != u'' and len(line.strip()) > 1:
                     lines.append(line_striped)
@@ -105,42 +168,48 @@ class ChnCorpus(Corpus):
             whole_line = ''.join(filter(lambda x: x in self.charsets, whole_line))
             #print (whole_line[0 : 500])
             if len(whole_line) > self.length:
-                self.corpus.append(whole_line)
-            #如果是英文的话，计算一下所有空格的位置
-            if self.iseng(whole_line):
-                self.eng_whitespace_pos_list = []
-                for i in range(0, len(whole_line)):
-                    if whole_line[i] == ' ':
-                        self.eng_whitespace_pos_list.append(i)
-            
+                #计算Corpus语言
+                #如果是英文的话，计算一下所有空格的位置
+                eng_whitespace_pos_list = []
+                language = 'chn'
+                if self.iseng(whole_line):
+                    language = 'eng'
+                    for index in range(0, len(whole_line)):
+                        if whole_line[index] == ' ':
+                            eng_whitespace_pos_list.append(index)
+                #计算每个稀缺的字的位置
+                # self.mid_char_index_dct = {}
+                low_char_index_dct = {}
+                for index in range(0, len(whole_line)):
+                    c  = whole_line[index]
+                    if c in low_char_index_dct:
+                        low_char_index_dct[c].append(index)
+                    else:
+                        low_char_index_dct[c] = [index]
 
-    def get_sample(self, img_index):
-        # 每次 gen_word，随机选一个预料文件，随机获得长度为 word_length 的字符
+                low_charset_level_list = [e for e in low_char_index_dct]
 
-        #补充一下单字，特别是那种频次特别低的单字
-        r = random.randint(0, 8)
-        #print (r, len(self.single_words_list))
-        if r == 0 and len(self.single_words_list) > 0:
-            word = ''
-            for i in range(0, self.length):
-                r_i = random.randint(0, len(self.single_words_list) - 1)   
-                word += self.single_words_list[r_i]
-            #如果已经出现过了，那么Continue掉
-            if word in self.has_been_created_text:
-                return None
-            self.has_been_created_text[word] = 1
-            return word, self.iseng(word)
+                corpus = DIPCorpus()
+                corpus.content = whole_line
+                corpus.eng_whitespace_pos_list = eng_whitespace_pos_list
+                corpus.low_char_index_dct = low_char_index_dct
+                corpus.low_charset_level_list = low_charset_level_list
+                corpus.language = language
+                self.corpus.append(corpus)
 
-        line = random.choice(self.corpus)
-        
+    #从一个语料中抽取一截
+    def choose_line(self, corpus):
+        line = corpus.content
+        language = corpus.language
+        eng_whitespace_pos_list = corpus.eng_whitespace_pos_list
         length = self.length
         #if self.iseng(line):
         length = 2 * self.length
         #尝试找到一个完整单词的界限，尽量不要截断单词
         max_step = 6
-        if self.iseng(line):
-            pos = np.random.randint(0, len(self.eng_whitespace_pos_list) - 1)
-            start = self.eng_whitespace_pos_list[pos]
+        if language == 'eng':
+            pos = np.random.randint(0, len(eng_whitespace_pos_list) - 1)
+            start = eng_whitespace_pos_list[pos]
             start += 1
         else:
             start = np.random.randint(0, len(line) - length - max_step)
@@ -171,12 +240,92 @@ class ChnCorpus(Corpus):
                 word += line[start]
                 start += 1
         word = word.strip(' ')
-        if word in self.has_been_created_text:
+        return word
+
+    #判断这个数据是不是高频句子
+    def balanced_sample(self, candidate_word, language):
+        #如果汉字全是高频词
+        all_high_freq = True
+        if language == 'chn':
+            for c in candidate_word:
+                if c not in self.high_charset_level:
+                    all_high_freq = False
+                    break
+        else:
+            return True
+        if all_high_freq:
+            return False
+        return True
+
+    def get_sample(self, img_index):
+        # 每次 gen_word，随机选一个预料文件，随机获得长度为 word_length 的字符
+        
+        #补充一下单字，特别是那种频次特别低的单字
+        r = random.randint(0, 8)
+        print ("GET SAMPLE ", r)
+        #print (r, len(self.single_words_list))
+        if r == 0 and len(self.single_words_list) > 0:
+            word = ''
+            for i in range(0, self.length):
+                r_i = random.randint(0, len(self.single_words_list) - 1)   
+                word += self.single_words_list[r_i]
+            #如果已经出现过了，那么Continue掉
+            if word in self.has_been_created_text:
+                #raise Exception("single_words, already has been created")
+                return None
+            self.has_been_created_text[word] = 1
+            return word, 'chn'
+
+        corpus = random.choice(self.corpus)
+        
+        #选择稀有词所在的位置进行嘎嘎
+        if r == 1:
+            line = corpus.content
+            r_i = random.randint(0, len(corpus.low_charset_level_list) - 1)
+            index_list = corpus.low_char_index_dct[ corpus.low_charset_level_list[r_i]]
+            r_list_i = random.randint(0, len(index_list) - 1)
+            r_start = random.randint(r_list_i - self.length + 1, r_list_i)
+            if r_start >= 0 and r_start + self.length < len(line):
+                word = line [r_start : r_start + self.length]
+                print ("Choose Low Word : ", corpus.low_charset_level_list[r_i], " Choose : ", word)
+                if word in self.has_been_created_text:
+                    return None
+                self.has_been_created_text[word] = 1
+                return word, corpus.language
+            else:
+                return None
+        
+        language = corpus.language
+        
+        retry_num = 5
+        OK = False
+        
+        for i in range(0, retry_num):
+            word = self.choose_line(corpus)
+            print ("try : ", word)
+            if word in self.has_been_created_text:
+                print ("choose already exists : ", word)
+                continue
+            #平衡样本
+            if self.balanced_sample(word, language):
+                OK = True
+                print ("Found Balanced word : ", word)
+                break
+            else:
+                print ("Found unBalanced word : ", word)
+                #70%的概率保留非平衡样本
+                if self.prob(0.7):
+                    OK = True
+                    print ("preserve unBalanced word : ", word)
+                    break
+                else:
+                    print ("Abandon unBalanced word : ", word)
+                #如果全是高频词，那么有一定的概率保留
+
+        if False == OK:
+            #raise Exception("Failed to found sample")
             return None
         self.has_been_created_text[word] = 1
-        language = 'chn'
-        if self.iseng(line):
-            language = 'eng'
         #print ("Choose Word : [", word , "]" , len(word), language)
         #word = line[start:start + length]
         #不能让文本的开始和结束有空格的出现

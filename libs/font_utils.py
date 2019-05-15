@@ -115,26 +115,27 @@ def get_fonts_chars(fonts, chars_file):
 
     chars = load_chars(chars_file)
     chars = ''.join(chars)
+    for language, font_list in fonts.items():
+        for font_path in font_list:
+    #for font_path in fonts:
+            string = ''.join([font_path, chars])
+            file_md5 = md5(string)
 
-    for font_path in fonts:
-        string = ''.join([font_path, chars])
-        file_md5 = md5(string)
+            cache_file_path = os.path.join(cache_dir, file_md5)
 
-        cache_file_path = os.path.join(cache_dir, file_md5)
+            if not os.path.exists(cache_file_path):
+                ttf = load_font(font_path)
+                _, supported_chars = check_font_chars(ttf, chars)
+                print('Save font(%s) supported chars(%d) to cache' % (font_path, len(supported_chars)))
 
-        if not os.path.exists(cache_file_path):
-            ttf = load_font(font_path)
-            _, supported_chars = check_font_chars(ttf, chars)
-            print('Save font(%s) supported chars(%d) to cache' % (font_path, len(supported_chars)))
+                with open(cache_file_path, 'wb') as f:
+                    pickle.dump(supported_chars, f, pickle.HIGHEST_PROTOCOL)
+            else:
+                with open(cache_file_path, 'rb') as f:
+                    supported_chars = pickle.load(f)
+                print('Load font(%s) supported chars(%d) from cache' % (font_path, len(supported_chars)))
 
-            with open(cache_file_path, 'wb') as f:
-                pickle.dump(supported_chars, f, pickle.HIGHEST_PROTOCOL)
-        else:
-            with open(cache_file_path, 'rb') as f:
-                supported_chars = pickle.load(f)
-            print('Load font(%s) supported chars(%d) from cache' % (font_path, len(supported_chars)))
-
-        out[font_path] = supported_chars
+            out[font_path] = supported_chars
 
     return out
 

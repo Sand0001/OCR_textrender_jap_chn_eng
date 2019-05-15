@@ -1,5 +1,10 @@
 ./data/fonts/chn/msyh.ttc
 ./data/fonts/chn/Songti.ttc
+./data/fonts/chn/Libian.ttc
+./data/fonts/chn/STHeiti Light.ttc
+./data/fonts/chn/STHeiti Medium.ttc
+./data/fonts/chn/Kaiti.ttc
+./data/fonts/chn/Baoli.ttc
 ./data/fonts/eng/Hack-Regular.ttf
 ./data/fonts/eng/Aller_Bd.ttf
 ./data/fonts/eng/Aller_BdIt.ttf

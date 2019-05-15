@@ -15,9 +15,10 @@ from textrenderer.background_generator import BackgroundGenerator
 
 # noinspection PyMethodMayBeStatic
 from textrenderer.remaper import Remaper
-
+import traceback
 import matplotlib.pyplot as plt
 
+#import pysnooper
 
 class Renderer(object):
     def __init__(self, corpus, fonts, bgs, cfg, width=256, height=32,
@@ -42,16 +43,18 @@ class Renderer(object):
         self.create_kernals()
 
         if self.strict:
+            #print (self.fonts)
             self.font_unsupport_chars = font_utils.get_unsupported_chars(self.fonts, corpus.chars_file)
 
 
         self.show = False
+        self.showEffect = True
 
     def start(self):
         return time.time()
     
     def end(self, t , msg = ""):
-        return
+        #return
         print(msg + " took {:.3f}s".format(time.time() - t))
 
 
@@ -80,13 +83,14 @@ class Renderer(object):
             plt.title(title,fontsize='large',fontweight='bold')
         plt.imshow(test_img)
         plt.show()
-
+  
     def gen_img(self, img_index):
         t = self.start()
         word, font, word_size = self.pick_font(img_index)
         self.end(t, "pick_font")
         self.dmsg("after pick font")
-
+        print ("***********************")
+        print ("Text : ", word)
         # Background's height should much larger than raw word image's height,
         # to make sure we can crop full word image after apply perspective
         t = self.start()
@@ -94,12 +98,13 @@ class Renderer(object):
             print ("Word_Size :", word_size,' WORD:', word)
         #如果Wordsize特别小，乘以一个系数也是有问题的
         bg = self.gen_bg(width=word_size[0] + 280, height=word_size[1]  +  96)
+        
         word_img, text_box_pnts, word_color = self.draw_text_on_bg(word, font, bg)
         if self.show:
             print ("BG SHAPE : ", bg.shape)
             print ("Word Image : ", word_img.shape)
             print ("text_box_pnts : ", text_box_pnts)
-        self.end(t, "gen_bg & draw_text_on_bg")
+        self.end(t, "gen_bg & draw_text_on_bg : " + str(word_size))
         #print ("Before Apply", word_size, word_img.shape)
         self.dmsg("After draw_text_on_bg")
         t = self.start()
@@ -129,7 +134,8 @@ class Renderer(object):
         #plt.show()
         t = self.start()
         #print ("Before transform ", word_img.shape)
-        word_img, img_pnts_transformed, text_box_pnts_transformed = \
+        
+        word_img, bg_pnts_transformed, text_box_pnts_transformed = \
             self.apply_perspective_transform(word_img, text_box_pnts,
                                              max_x=self.cfg.perspective_transform.max_x,
                                              max_y=self.cfg.perspective_transform.max_y,
@@ -137,18 +143,21 @@ class Renderer(object):
                                              gpu=self.gpu)
         if self.show:
             print ("text_box_pnts_transformed : ", text_box_pnts_transformed)
+            print ("img_pnts_transformed : ", bg_pnts_transformed)
             self.plt_show(word_img, text_box_pnts_transformed, title= "After Transform")
+            self.plt_show(word_img,bg_pnts_transformed, title = "After Transform img_pnts")
         self.end(t, "apply apply_perspective_transform ")
         #plt.imshow(word_img)
         #plt.show()
         self.dmsg("After perspective transform")
         t = self.start()
         if self.debug:
-            _, crop_bbox = self.crop_img(word_img, text_box_pnts_transformed)
+            #bg_pnts_transformed表示的是，背景的四个顶点，在Transform后，图片会扩大，背景色为黑色，必须要限定裁剪在背景范围内，否则会出现多余的黑色
+            _, crop_bbox = self.crop_img(word_img, text_box_pnts_transformed,bg_pnts_transformed)
             word_img = draw_bbox(word_img, crop_bbox, (255, 0, 0))
         else:
             #all bad comes from here, why leaving some padding?
-            word_img, crop_bbox = self.crop_img(word_img, text_box_pnts_transformed)
+            word_img, crop_bbox = self.crop_img(word_img, text_box_pnts_transformed, bg_pnts_transformed)
         if self.show:
             print ("AFTER CROP")
             #左下, 右下, 右上，左上
@@ -164,6 +173,8 @@ class Renderer(object):
         if apply(self.cfg.noise):
             word_img = np.clip(word_img, 0., 255.)
             word_img = self.noiser.apply(word_img)
+            if self.show:
+                self.plt_show(word_img, title = 'After noiser')
             self.dmsg("After noiser")
 
        
@@ -174,36 +185,69 @@ class Renderer(object):
             blured = True
             word_img = self.apply_blur_on_output(word_img)
             self.dmsg("After blur")
+            if self.show:
+                self.plt_show(word_img, title = 'After blur')
 
+        prydown_scale = 1.0
         if not blured:
             if apply(self.cfg.prydown):
-                word_img = self.apply_prydown(word_img)
+                word_img, prydown_scale = self.apply_prydown(word_img)
                 self.dmsg("After prydown")
-
+                if self.show:
+                    self.plt_show(word_img, title = 'After prydown')
        
         t = self.start()
         word_img = np.clip(word_img, 0., 255.)
         #print (word_img.shape)
-        
+        isReversed = False
         if apply(self.cfg.reverse_color):
+            print ("-*- APPLY reverse_color ")
             word_img = self.reverse_img(word_img)
+            isReversed = True
             self.dmsg("After reverse_img")
+            if self.show:
+                self.plt_show(word_img, title = 'After reverse_color')
 
         if apply(self.cfg.emboss):
+            print ("-*- APPLY emboss ")
             word_img = self.apply_emboss(word_img)
             self.dmsg("After emboss")
-
-        if apply(self.cfg.sharp):
+            if self.show:
+                self.plt_show(word_img, title = 'After emboss')
+        #如果resize的太过分了，就别sharp和erode了
+        if apply(self.cfg.sharp) and prydown_scale < 1.3:
+            print ("-*- APPLY sharp ")
+            #if not isReversed:
+            #    word_img = self.reverse_img(word_img)
             word_img = self.apply_sharp(word_img)
+            #if not isReversed:
+            #    word_img = self.reverse_img(word_img)
             self.dmsg("After sharp")
+            if self.show:
+                self.plt_show(word_img, title = 'After sharp')
 
-        if apply(self.cfg.erode):
+        
+        if apply(self.cfg.erode) and prydown_scale < 1.3:
             word_img = self.add_erode(word_img)
+            if self.show:
+                self.plt_show(word_img, title = 'After erode')
+
 
         if apply(self.cfg.dilate):
+            print ("-*- APPLY dilate ")
             word_img = self.add_dilate(word_img)
 
+        #word_img = cv2.resize(word_img, (self.out_width, self.out_height), interpolation=cv2.INTER_CUBIC)
+        if self.show:
+            self.plt_show(word_img, title = 'After Resize')
+        # #延后做
+        # if not blured:
+        #     if apply(self.cfg.prydown):
+        #         word_img = self.apply_prydown(word_img)
+        #         self.dmsg("After prydown")
+
         self.end(t, "apply2 ")
+        print ("***********************END*****************")
         return word_img, word
 
     def dmsg(self, msg):
@@ -238,7 +282,7 @@ class Renderer(object):
         #print("OFFSET : ", x_offset, y_offset, x_max_offset, y_max_offset)
         return x_offset, y_offset
 
-    def crop_img(self, img, text_box_pnts_transformed):
+    def crop_img(self, img, text_box_pnts_transformed, bg_pnts_transformed):
         """
         Crop text from large input image
         :param img: image to crop
@@ -302,6 +346,27 @@ class Renderer(object):
             self.int_around(dst_width * scale),
             self.int_around(self.out_height * scale)
         )
+        #左右x坐标上的边界会不会超出
+        maxBGLeftX = max(bg_pnts_transformed[0][0], bg_pnts_transformed[3][0])
+        minBGRightX = min(bg_pnts_transformed[1][0], bg_pnts_transformed[2][0])
+        if dst_bbox[0] + dst_bbox[2] > minBGRightX:
+            print ("FUCKING minBGRightX_ERROR", dst_bbox[0], dst_bbox[2], minBGRightX)
+            return None
+        if dst_bbox[0] < maxBGLeftX:
+            print ("FUCKING maxBGLeftX_ERROR", dst_bbox[0], maxBGLeftX)
+            return None
+
+        #上下Y坐标上的边界会不会超出, 这里的坐标系是以左上角为原点，所以Y轴需要倒转一下
+        maxY = min(bg_pnts_transformed[0][1], bg_pnts_transformed[1][1])
+        minY = max(bg_pnts_transformed[2][1], bg_pnts_transformed[3][1])
+        
+
+        if dst_bbox[1] + dst_bbox[3] > maxY:
+            print ("FUCKING maxY_ERROR", dst_bbox[1], dst_bbox[3], maxY)
+            return None
+        if dst_bbox[1] < minY:
+            print ("FUCKING minY_ERROR", dst_bbox[1], minY)
+            return None
         '''
         if (dst_bbox[0] + dst_bbox[2] > bbox[0] + bbox[2]):
             #超出边界了呀
@@ -389,7 +454,8 @@ class Renderer(object):
         
         pil_img = Image.fromarray(np.uint8(bg))
         draw = ImageDraw.Draw(pil_img)
-        
+        if self.show:
+            self.plt_show(bg, title = 'bg')
         #text_x = random.randint(50, bg_width - word_width - 50)
         #text_y = random.randint(50, bg_height - word_height - 50)
 
@@ -512,6 +578,7 @@ class Renderer(object):
         :param x/y: 应该是移除了 offset 的
         """
         if apply(self.cfg.text_border):
+            print ("draw border")
             self.draw_border_text(draw, text, x, y, font, text_color)
         else:
             draw.text((x, y), text, fill=text_color, font=font)
@@ -554,6 +621,7 @@ class Renderer(object):
         # now draw the text over it
         draw.text((x, y), text, font=font, fill=text_color)
 
+   
     def gen_bg(self, width, height):
         if apply(self.cfg.img_bg):
             bg = self.gen_bg_from_image(int(width), int(height))
@@ -565,7 +633,9 @@ class Renderer(object):
         """
         Generate random background
         """
-        r = random.randint(1, 4) 
+        r = random.randint(2, 4)
+        print ("randbg : ", r)
+        #r = 1
         if r == 1:
             bg = np.array(BackgroundGenerator().quasicrystal(height, width))
             bg = self.apply_gauss_blur(bg)
@@ -604,9 +674,10 @@ class Renderer(object):
         x_offset, y_offset = self.random_xy_offset(height, width, out.shape[0], out.shape[1])
 
         out = out[y_offset:y_offset + height, x_offset:x_offset + width]
-
-        out = self.apply_gauss_blur(out, ks=[7, 11, 13, 15, 17])
-
+        #有33%的几率不做模糊处理
+        if random.randint(0, 2) > 0:
+            out = self.apply_gauss_blur(out, ks=[3, 5, 7, 9, 11, 13, 15, 17])
+        #out = self.apply_gauss_blur(out, ks = 1)
         bg_mean = int(np.mean(out))
 
         # TODO: find a better way to deal with background
@@ -624,37 +695,47 @@ class Renderer(object):
             font: truetype
             size: word size, removed offset (width, height)
         """
-        word, language = self.corpus.get_sample(img_index)
+        try:
+            word, language = self.corpus.get_sample(img_index)
 
-        if self.clip_max_chars and len(word) > self.max_chars:
-            word = word[:self.max_chars]
-        font_dct = self.fonts
-        #font_dct = random.choice(self.fonts)
-        #different lang  should have different fonts
-        #print(font_dct)
-        if language == 'eng':
-            font_path = random.choice(font_dct['eng'])
-        else:
-            if language == 'jap':
-                font_path = random.choice(font_dct['jap'])
+            #if word is None:
+
+
+            if self.clip_max_chars and len(word) > self.max_chars:
+                word = word[:self.max_chars]
+            font_dct = self.fonts
+            #font_dct = random.choice(self.fonts)
+            #different lang  should have different fonts
+            #print(font_dct)
+            if language == 'eng':
+                font_path = random.choice(font_dct['eng'])
             else:
-                font_path = random.choice(font_dct['chn'])
-        #print (language, font_path)
-        if self.strict:
-            unsupport_chars = self.font_unsupport_chars[font_path]
-            for c in word:
-                if c == ' ':
-                    continue
-                if c in unsupport_chars:
-                    print('Retry pick_font(), \'%s\' contains chars \'%s\' not supported by font %s' % (
-                        word, c, font_path))
-                    raise Exception
+                if language == 'jap':
+                    font_path = random.choice(font_dct['jap'])
+                else:
+                    font_path = random.choice(font_dct['chn'])
+            #print (language, font_path)
+            if self.strict:
+                unsupport_chars = self.font_unsupport_chars[font_path]
+                for c in word:
+                    if c == ' ':
+                        continue
+                    if c in unsupport_chars:
+                        print('Retry pick_font(), \'%s\' contains chars \'%s\' not supported by font %s' % (
+                            word, c, font_path))
+                        raise Exception
 
-        # Font size in point
-        font_size = random.randint(self.cfg.font_size.min, self.cfg.font_size.max)
-        font = ImageFont.truetype(font_path, font_size)
+            # Font size in point
+            font_size = random.randint(self.cfg.font_size.min, self.cfg.font_size.max)
+            font = ImageFont.truetype(font_path, font_size)
 
-        return word, font, self.get_word_size(font, word)
+            return word, font, self.get_word_size(font, word)
+        except Exception as e:
+            print("Retry pick_font: %s" % str(e))
+            traceback.print_exc()
+            #继续重试
+            raise Exception
+            
 
     def get_word_size(self, font, word):
         """
@@ -691,7 +772,7 @@ class Renderer(object):
         else:
             z = math_utils.cliped_rand_norm(0, max_z)
 
-        # print("x: %f, y: %f, z: %f" % (x, y, z))
+        print("Transform , x: %f, y: %f, z: %f" % (x, y, z))
 
         transformer = math_utils.PerspectiveTransform(x, y, z, scale=1.0, fovy=50)
 
@@ -702,8 +783,10 @@ class Renderer(object):
 
     def apply_blur_on_output(self, img):
         if prob(0.5):
+            print ("-*- APPLY blured 3,5 ")
             return self.apply_gauss_blur(img, [3, 5])
         else:
+            print ("-*- APPLY blured")
             return self.apply_norm_blur(img)
 
     def apply_gauss_blur(self, img, ks=None):
@@ -734,9 +817,9 @@ class Renderer(object):
         #scale = 2.2
         height = img.shape[0]
         width = img.shape[1]
-
+        print ("-*- APPLY prydown ", scale)
         out = cv2.resize(img, (int(width / scale), int(height / scale)), interpolation=cv2.INTER_AREA)
-        return cv2.resize(out, (width, height), interpolation=cv2.INTER_AREA)
+        return cv2.resize(out, (width, height), interpolation=cv2.INTER_AREA), scale
 
     def reverse_img(self, word_img):
         offset = np.random.randint(-10, 10)
@@ -748,13 +831,18 @@ class Renderer(object):
             [-1, 1, 1],
             [0, 1, 2]
         ])
-
+        '''
         self.sharp_kernel = np.array([
             [-1, -1, -1],
             [-1, 9, -1],
             [-1, -1, -1]
         ])
-
+        '''
+        self.sharp_kernel = np.array([
+            [0, -1, 0],
+            [-1, 5, -1],
+            [0, -1, 0]
+        ])
     def apply_emboss(self, word_img):
         return cv2.filter2D(word_img, -1, self.emboss_kernal)
 
@@ -794,7 +882,9 @@ class Renderer(object):
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(radius, radius))
         #return cv2.morphologyEx(img, cv2.MORPH_GRADIENT, kernel)
         img = cv2.dilate(img,kernel)
+        print ("-*- APPLY dilate ", radius)
         radius = random.randint(1,2)
+        print ("-*- APPLY erode ", radius)
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(radius, radius))
         img = cv2.erode(img, kernel)
         return img
