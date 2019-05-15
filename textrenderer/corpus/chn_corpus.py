@@ -301,7 +301,9 @@ class ChnCorpus(Corpus):
             index_list = corpus.low_char_index_dct[ corpus.low_charset_level_list[r_i]]
             #print ("Low Word Index_List", index_list)
             r_list_i = index_list[random.randint(0, len(index_list) - 1)]
-            r_start = random.randint(r_list_i - self.length + 1, r_list_i)
+            #还是固定一下位置吧，这样好做去重，否则的话，会出现一大堆只差一个字的奇奇怪怪的东西
+            #r_start = random.randint(r_list_i - self.length + 1, r_list_i)
+            r_start = r_list_i - 3
             #print ("Low Word Start : ", r_start)
             if r_start >= 0 and r_start + self.length < len(line):
                 word = self.get_content_of_len_from_pos(line, 2 * self.length, r_start)
