@@ -69,6 +69,8 @@ class ChnCorpus(Corpus):
         self.single_words_list = []
         for line in open("./data/corpus/singleword.dat"):
             parts = line.strip('\r\n ').split(' ')
+            if parts[0] not in self.charsets:
+                continue
             self.single_words_list.append(parts[0])
         print ("Load Single Word List : ", len(self.single_words_list))
 
@@ -280,7 +282,7 @@ class ChnCorpus(Corpus):
         #r = 1
         print ("GET SAMPLE ", r)
         #print (r, len(self.single_words_list))
-        if r == 0 and len(self.single_words_list) > 0:
+        if r == 0 and len(self.single_words_list) > 0 and self.prob(0.25):
             word = ''
             for i in range(0, self.length):
                 r_i = random.randint(0, len(self.single_words_list) - 1)   
@@ -296,7 +298,7 @@ class ChnCorpus(Corpus):
         
         #选择稀有词所在的位置进行嘎嘎
 		#降低概率
-        if r == 1 and corpus.language == 'chn' and len(corpus.low_charset_level_list) > 0 and random.randint(0, 3) == 0:
+        if r == 1 and corpus.language == 'chn' and len(corpus.low_charset_level_list) > 0 and self.prob(0.25):
             line = corpus.content
             r_i = random.randint(0, len(corpus.low_charset_level_list) - 1)
             index_list = corpus.low_char_index_dct[ corpus.low_charset_level_list[r_i]]
