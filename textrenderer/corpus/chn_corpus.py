@@ -185,6 +185,9 @@ class ChnCorpus(Corpus):
                 low_char_index_dct = {}
                 for index in range(0, len(whole_line)):
                     c  = whole_line[index]
+                    #如果不是稀缺字，那么手动886
+                    if c not in self.low_charset_level:
+                        continue
                     if c in low_char_index_dct:
                         low_char_index_dct[c].append(index)
                     else:
@@ -200,6 +203,38 @@ class ChnCorpus(Corpus):
                 corpus.language = language
                 self.corpus.append(corpus)
 
+    #尝试找到一个完整单词的界限，尽量不要截断单词
+    def get_content_of_len_from_pos(self, content, length, pos, max_step = 6):
+        word = ''
+        cur_len = 0
+        start = pos
+        #rand_len = length  +  (random.randint(0, 8) - 4)
+        #length = rand_len
+        while cur_len < length and start < len(content):
+            c = content[start]
+            if self.ischinese(c):
+                cur_len += 2
+            else:
+                cur_len += 1
+            word += content[start]
+            start += 1
+        isalpha = lambda  x: x>= 'a' and x<='z' or x >= 'A' and x <= 'Z'
+        #如果结尾是个单词，那么往后继续查， 直到找到空格，尽量保证单词的完整性
+        if isalpha(word[len(word) - 1]):
+            while cur_len < length + max_step and start < len(content):
+                c = content[start]
+                if c == ' ':
+                    break
+                if self.ischinese(c):
+                    cur_len += 2
+                else:
+                    cur_len += 1
+                word += content[start]
+                start += 1
+        word = word.strip(' ')
+        return word
+
+
     #从一个语料中抽取一截
     def choose_line(self, corpus):
         line = corpus.content
@@ -207,9 +242,11 @@ class ChnCorpus(Corpus):
         eng_whitespace_pos_list = corpus.eng_whitespace_pos_list
         length = self.length
         #if self.iseng(line):
+        #汉字算长度2，英文算1
         length = 2 * self.length
-        #尝试找到一个完整单词的界限，尽量不要截断单词
+        ##尝试找到一个完整单词的界限，尽量不要截断单词，最多尝试6步
         max_step = 6
+
         if language == 'eng':
             pos = np.random.randint(0, len(eng_whitespace_pos_list) - 1)
             start = eng_whitespace_pos_list[pos]
@@ -217,33 +254,8 @@ class ChnCorpus(Corpus):
         else:
             start = np.random.randint(0, len(line) - length - max_step)
             length = length  +  (random.randint(0, 8) - 4)
-        word = ''
-        cur_len = 0
-        #rand_len = length  +  (random.randint(0, 8) - 4)
-        #length = rand_len
-        while cur_len < length and start < len(line):
-            c = line[start]
-            if self.ischinese(c):
-                cur_len += 2
-            else:
-                cur_len += 1
-            word += line[start]
-            start += 1
-        isalpha = lambda  x: x>= 'a' and x<='z' or x >= 'A' and x <= 'Z'
-        #如果结尾是个单词，那么往后继续查， 直到找到空格，尽量保证单词的完整性
-        if isalpha(word[len(word) - 1]):
-            while cur_len < length + max_step and start < len(line):
-                c = line[start]
-                if c == ' ':
-                    break
-                if self.ischinese(c):
-                    cur_len += 2
-                else:
-                    cur_len += 1
-                word += line[start]
-                start += 1
-        word = word.strip(' ')
-        return word
+
+        return self.get_content_of_len_from_pos(line, length, start, max_step)
 
     #判断这个数据是不是高频句子
     def balanced_sample(self, candidate_word, language):
@@ -265,6 +277,7 @@ class ChnCorpus(Corpus):
         
         #补充一下单字，特别是那种频次特别低的单字
         r = random.randint(0, 8)
+        r = 1
         print ("GET SAMPLE ", r)
         #print (r, len(self.single_words_list))
         if r == 0 and len(self.single_words_list) > 0:
@@ -282,14 +295,17 @@ class ChnCorpus(Corpus):
         corpus = random.choice(self.corpus)
         
         #选择稀有词所在的位置进行嘎嘎
-        if r == 1:
+        if r == 1 and corpus.language == 'chn' and len(corpus.low_charset_level_list) > 0:
             line = corpus.content
             r_i = random.randint(0, len(corpus.low_charset_level_list) - 1)
             index_list = corpus.low_char_index_dct[ corpus.low_charset_level_list[r_i]]
-            r_list_i = random.randint(0, len(index_list) - 1)
+            #print ("Low Word Index_List", index_list)
+            r_list_i = index_list[random.randint(0, len(index_list) - 1)]
             r_start = random.randint(r_list_i - self.length + 1, r_list_i)
+            #print ("Low Word Start : ", r_start)
             if r_start >= 0 and r_start + self.length < len(line):
-                word = line [r_start : r_start + self.length]
+                word = self.get_content_of_len_from_pos(line, 2 * self.length, r_start)
+                #word = line [r_start : r_start + self.length]
                 print ("Choose Low Word : ", corpus.low_charset_level_list[r_i], " Choose : ", word)
                 if word in self.has_been_created_text:
                     return None
@@ -299,7 +315,6 @@ class ChnCorpus(Corpus):
                 return None
         
         language = corpus.language
-        
         retry_num = 5
         OK = False
         
