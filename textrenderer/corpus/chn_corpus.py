@@ -277,7 +277,7 @@ class ChnCorpus(Corpus):
         
         #补充一下单字，特别是那种频次特别低的单字
         r = random.randint(0, 8)
-        r = 1
+        #r = 1
         print ("GET SAMPLE ", r)
         #print (r, len(self.single_words_list))
         if r == 0 and len(self.single_words_list) > 0:
@@ -295,7 +295,8 @@ class ChnCorpus(Corpus):
         corpus = random.choice(self.corpus)
         
         #选择稀有词所在的位置进行嘎嘎
-        if r == 1 and corpus.language == 'chn' and len(corpus.low_charset_level_list) > 0:
+		#降低概率
+        if r == 1 and corpus.language == 'chn' and len(corpus.low_charset_level_list) > 0 and random.randint(0, 3) == 0:
             line = corpus.content
             r_i = random.randint(0, len(corpus.low_charset_level_list) - 1)
             index_list = corpus.low_char_index_dct[ corpus.low_charset_level_list[r_i]]
@@ -317,7 +318,7 @@ class ChnCorpus(Corpus):
                 return None
         
         language = corpus.language
-        retry_num = 5
+        retry_num = 8
         OK = False
         
         for i in range(0, retry_num):
@@ -334,7 +335,7 @@ class ChnCorpus(Corpus):
             else:
                 print ("Found unBalanced word : ", word)
                 #70%的概率保留非平衡样本
-                if self.prob(0.7):
+                if self.prob(0.5):
                     OK = True
                     print ("preserve unBalanced word : ", word)
                     break
