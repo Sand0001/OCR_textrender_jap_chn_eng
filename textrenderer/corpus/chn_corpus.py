@@ -59,7 +59,7 @@ class ChnCorpus(Corpus):
 
     def prob(self, probability):
         r = random.randint(0, 100)
-        print ("Prob : ", r)
+        #print ("Prob : ", r)
         if r <= probability * 100:
             return True
         else:
@@ -280,25 +280,29 @@ class ChnCorpus(Corpus):
         #补充一下单字，特别是那种频次特别低的单字
         r = random.randint(0, 8)
         #r = 1
-        print ("GET SAMPLE ", r)
+        #print ("GET SAMPLE ", r, len(self.has_been_created_text))
         #print (r, len(self.single_words_list))
-        if r == 0 and len(self.single_words_list) > 0 and self.prob(0.25):
+        if r == 0 and len(self.single_words_list) > 0:#and self.prob(0.25):
             word = ''
             for i in range(0, self.length):
                 r_i = random.randint(0, len(self.single_words_list) - 1)   
                 word += self.single_words_list[r_i]
             #如果已经出现过了，那么Continue掉
             if word in self.has_been_created_text:
-                #raise Exception("single_words, already has been created")
+                #print ("Abandon has_been_created_text word : ", word)
+                raise Exception("single_words, already has been created")
                 return None
             self.has_been_created_text[word] = 1
             return word, 'chn'
 
         corpus = random.choice(self.corpus)
+        #减少一些英文的比例
+        if corpus.language == 'eng' and  self.prob(0.2):
+            corpus = random.choice(self.corpus)
         
         #选择稀有词所在的位置进行嘎嘎
-		#降低概率
-        if r == 1 and corpus.language == 'chn' and len(corpus.low_charset_level_list) > 0 and self.prob(0.25):
+        #降低概率
+        if False and r == 1 and corpus.language == 'chn' and len(corpus.low_charset_level_list) > 0 and self.prob(0.25):
             line = corpus.content
             r_i = random.randint(0, len(corpus.low_charset_level_list) - 1)
             index_list = corpus.low_char_index_dct[ corpus.low_charset_level_list[r_i]]
@@ -313,39 +317,42 @@ class ChnCorpus(Corpus):
                 #word = line [r_start : r_start + self.length]
                 print ("Choose Low Word : ", corpus.low_charset_level_list[r_i], " Choose : ", word)
                 if word in self.has_been_created_text:
-                    return None
+                    print ("Abandon has_been_created_text word : ", word)
+                    #return None
                 self.has_been_created_text[word] = 1
                 return word, corpus.language
             else:
                 return None
         
         language = corpus.language
-        retry_num = 8
+        retry_num = 10
         OK = False
         
         for i in range(0, retry_num):
             word = self.choose_line(corpus)
-            print ("try : ", word)
+            #print ("try : ", word)
             if word in self.has_been_created_text:
-                print ("choose already exists : ", word)
+                #print ("choose already exists : ", word)
                 continue
             #平衡样本
             if self.balanced_sample(word, language):
                 OK = True
-                print ("Found Balanced word : ", word)
+                #print ("Found Balanced word : ", word)
                 break
             else:
-                print ("Found unBalanced word : ", word)
+                #print ("Found unBalanced word : ", word)
                 #70%的概率保留非平衡样本
                 if self.prob(0.5):
                     OK = True
-                    print ("preserve unBalanced word : ", word)
+                    #print ("preserve unBalanced word : ", word)
                     break
                 else:
-                    print ("Abandon unBalanced word : ", word)
+                    pass
+                    #print ("Abandon unBalanced word : ", word)
                 #如果全是高频词，那么有一定的概率保留
 
         if False == OK:
+            #print  ("failed to find sample after tried : ", retry_num)
             #raise Exception("Failed to found sample")
             return None
         self.has_been_created_text[word] = 1

@@ -87,8 +87,9 @@ class Renderer(object):
   
 
 
-    def gen_img(self, img_index, lock):
+    def gen_img(self, img_index):
         t = self.start()
+        lock = None
         word, font, word_size = self.pick_font(img_index)
         self.end(t, "pick_font")
         self.dmsg("after pick font")

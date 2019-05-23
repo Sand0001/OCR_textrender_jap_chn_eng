@@ -35,7 +35,7 @@ class Noiser(object):
             return img
 
         noise_func = np.random.choice(funcs, p=p)
-        print ("-*- APPLY Noise", noise_func)
+        #print ("-*- APPLY Noise", noise_func)
         return noise_func(img)
 
     def apply_gauss_noise(self, img):
