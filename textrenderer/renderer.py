@@ -1,3 +1,4 @@
+import sys
 import math
 import random
 import numpy as np
@@ -54,8 +55,8 @@ class Renderer(object):
         return time.time()
     
     def end(self, t , msg = ""):
-        #return
-        print(msg + " took {:.3f}s".format(time.time() - t))
+        return
+        #print(msg + " took {:.3f}s".format(time.time() - t))
 
 
     def plt_show_list (self,word_img, text_box_pnts_list = None, title = None):
@@ -84,21 +85,22 @@ class Renderer(object):
         plt.imshow(test_img)
         plt.show()
   
-    def gen_img(self, img_index):
+
+
+    def gen_img(self, img_index, lock):
         t = self.start()
         word, font, word_size = self.pick_font(img_index)
         self.end(t, "pick_font")
         self.dmsg("after pick font")
-        print ("***********************")
-        print ("Text : ", word)
+        self.dmsg ("***********************")
+        self.dmsg ("Text : ", word)
         # Background's height should much larger than raw word image's height,
         # to make sure we can crop full word image after apply perspective
         t = self.start()
         if self.show:
             print ("Word_Size :", word_size,' WORD:', word)
         #如果Wordsize特别小，乘以一个系数也是有问题的
-        bg = self.gen_bg(width=word_size[0] + 280, height=word_size[1]  +  96)
-        
+        bg = self.gen_bg(width=word_size[0] + 280, height=word_size[1]  +  96, lock = lock)
         word_img, text_box_pnts, word_color = self.draw_text_on_bg(word, font, bg)
         if self.show:
             print ("BG SHAPE : ", bg.shape)
@@ -183,7 +185,7 @@ class Renderer(object):
         blured = False
         if apply(self.cfg.blur):
             blured = True
-            word_img = self.apply_blur_on_output(word_img)
+            word_img = self.apply_blur_on_output(word_img, lock)
             self.dmsg("After blur")
             if self.show:
                 self.plt_show(word_img, title = 'After blur')
@@ -201,7 +203,7 @@ class Renderer(object):
         #print (word_img.shape)
         isReversed = False
         if apply(self.cfg.reverse_color):
-            print ("-*- APPLY reverse_color ")
+            self.dmsg ("-*- APPLY reverse_color ")
             word_img = self.reverse_img(word_img)
             isReversed = True
             self.dmsg("After reverse_img")
@@ -209,14 +211,14 @@ class Renderer(object):
                 self.plt_show(word_img, title = 'After reverse_color')
 
         if apply(self.cfg.emboss):
-            print ("-*- APPLY emboss ")
+            self.dmsg ("-*- APPLY emboss ")
             word_img = self.apply_emboss(word_img)
             self.dmsg("After emboss")
             if self.show:
                 self.plt_show(word_img, title = 'After emboss')
         #如果resize的太过分了，就别sharp和erode了
         if apply(self.cfg.sharp) and prydown_scale < 1.3:
-            print ("-*- APPLY sharp ")
+            self.dmsg ("-*- APPLY sharp ")
             #if not isReversed:
             #    word_img = self.reverse_img(word_img)
             word_img = self.apply_sharp(word_img)
@@ -234,7 +236,7 @@ class Renderer(object):
 
 
         if apply(self.cfg.dilate):
-            print ("-*- APPLY dilate ")
+            self.dmsg ("-*- APPLY dilate ")
             word_img = self.add_dilate(word_img)
 
         #word_img = cv2.resize(word_img, (self.out_width, self.out_height), interpolation=cv2.INTER_CUBIC)
@@ -247,10 +249,10 @@ class Renderer(object):
         #         self.dmsg("After prydown")
 
         self.end(t, "apply2 ")
-        print ("***********************END*****************")
+        self.dmsg ("***********************END*****************")
         return word_img, word
 
-    def dmsg(self, msg):
+    def dmsg(self, *msg):
         if self.debug:
             print(msg)
 
@@ -578,7 +580,7 @@ class Renderer(object):
         :param x/y: 应该是移除了 offset 的
         """
         if apply(self.cfg.text_border):
-            print ("draw border")
+            self.dmsg ("draw border")
             self.draw_border_text(draw, text, x, y, font, text_color)
         else:
             draw.text((x, y), text, fill=text_color, font=font)
@@ -622,43 +624,43 @@ class Renderer(object):
         draw.text((x, y), text, font=font, fill=text_color)
 
    
-    def gen_bg(self, width, height):
+    def gen_bg(self, width, height, lock):
         if apply(self.cfg.img_bg):
-            bg = self.gen_bg_from_image(int(width), int(height))
+            bg = self.gen_bg_from_image(int(width), int(height), lock)
         else:
-            bg = self.gen_rand_bg(int(width), int(height))
+            bg = self.gen_rand_bg(int(width), int(height), lock)
         return bg
 
-    def gen_rand_bg(self, width, height):
+    def gen_rand_bg(self, width, height, lock):
         """
         Generate random background
         """
         r = random.randint(2, 4)
-        print ("randbg : ", r)
+        self.dmsg ("randbg : ", r)
         #r = 1
         if r == 1:
             bg = np.array(BackgroundGenerator().quasicrystal(height, width))
-            bg = self.apply_gauss_blur(bg)
+            bg = self.apply_gauss_blur(bg, lock=lock)
             return bg
         if r == 2:   
             bg_high = random.uniform(220, 255)
             bg_low = bg_high - random.uniform(0, 128)
             bg = np.random.randint(bg_low, bg_high, (height, width)).astype(np.uint8)
             #if random.randint(1,4) < 4:
-            bg = self.apply_gauss_blur(bg)
+            bg = self.apply_gauss_blur(bg, lock=lock)
             return bg
         if r == 3:  
             bg = np.array(BackgroundGenerator().gaussian_noise(height, width))
-            bg = self.apply_gauss_blur(bg)
+            bg = self.apply_gauss_blur(bg, lock = lock)
             return bg 
         if r == 4: 
             bg = np.random.randint(220, 255, (height, width)).astype(np.uint8)
             #if random.randint(1,4) < 4:
-            bg = self.apply_gauss_blur(bg)
+            bg = self.apply_gauss_blur(bg, lock = lock)
             return bg
            
 
-    def gen_bg_from_image(self, width, height):
+    def gen_bg_from_image(self, width, height, lock):
         """
         Resize background, let bg_width>=width, bg_height >=height, and random crop from resized background
         """
@@ -676,7 +678,7 @@ class Renderer(object):
         out = out[y_offset:y_offset + height, x_offset:x_offset + width]
         #有33%的几率不做模糊处理
         if random.randint(0, 2) > 0:
-            out = self.apply_gauss_blur(out, ks=[3, 5, 7, 9, 11, 13, 15, 17])
+            out = self.apply_gauss_blur(out, ks=[3, 5, 7, 9, 11, 13, 15, 17], lock = lock)
         #out = self.apply_gauss_blur(out, ks = 1)
         bg_mean = int(np.mean(out))
 
@@ -772,7 +774,7 @@ class Renderer(object):
         else:
             z = math_utils.cliped_rand_norm(0, max_z)
 
-        print("Transform , x: %f, y: %f, z: %f" % (x, y, z))
+        self.dmsg("Transform , x: %f, y: %f, z: %f" % (x, y, z))
 
         transformer = math_utils.PerspectiveTransform(x, y, z, scale=1.0, fovy=50)
 
@@ -781,15 +783,15 @@ class Renderer(object):
 
         return dst_img, dst_img_pnts, dst_text_pnts
 
-    def apply_blur_on_output(self, img):
+    def apply_blur_on_output(self, img, lock = None):
         if prob(0.5):
-            print ("-*- APPLY blured 3,5 ")
-            return self.apply_gauss_blur(img, [3, 5])
+            self.dmsg ("-*- APPLY blured 3,5 ")
+            return self.apply_gauss_blur(img, [3, 5], lock = lock)
         else:
-            print ("-*- APPLY blured")
+            self.dmsg ("-*- APPLY blured")
             return self.apply_norm_blur(img)
 
-    def apply_gauss_blur(self, img, ks=None):
+    def apply_gauss_blur(self, img, ks=None, lock=None):
         if ks is None:
             ks = [7, 9, 11, 13]
         ksize = random.choice(ks)
@@ -798,7 +800,13 @@ class Renderer(object):
         sigma = 0
         if ksize <= 3:
             sigma = random.choice(sigmas)
-        img = cv2.GaussianBlur(img, (ksize, ksize), sigma)
+        if lock:
+            with lock:
+                if img.shape[0] > ksize and img.shape[1] > ksize:
+                    img = cv2.GaussianBlur(img, (ksize, ksize), sigma)
+        else:
+            if img.shape[0] > ksize and img.shape[1] > ksize:
+                img = cv2.GaussianBlur(img, (ksize, ksize), sigma)
         return img
 
     def apply_norm_blur(self, img, ks=None):
@@ -817,7 +825,7 @@ class Renderer(object):
         #scale = 2.2
         height = img.shape[0]
         width = img.shape[1]
-        print ("-*- APPLY prydown ", scale)
+        self.dmsg ("-*- APPLY prydown ", scale)
         out = cv2.resize(img, (int(width / scale), int(height / scale)), interpolation=cv2.INTER_AREA)
         return cv2.resize(out, (width, height), interpolation=cv2.INTER_AREA), scale
 
@@ -882,9 +890,9 @@ class Renderer(object):
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(radius, radius))
         #return cv2.morphologyEx(img, cv2.MORPH_GRADIENT, kernel)
         img = cv2.dilate(img,kernel)
-        print ("-*- APPLY dilate ", radius)
+        self.dmsg ("-*- APPLY dilate ", radius)
         radius = random.randint(1,2)
-        print ("-*- APPLY erode ", radius)
+        self.dmsg ("-*- APPLY erode ", radius)
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(radius, radius))
         img = cv2.erode(img, kernel)
         return img

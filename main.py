@@ -73,12 +73,13 @@ def gen_img_retry(renderer, img_index):
 
 def generate_img(img_index, q=None):
     global flags, lock, counter
+    #raise Exception('123')
     # Make sure different process has different random seed
     np.random.seed()
-
     im, word = gen_img_retry(renderer, img_index)
 
     base_name = '{:08d}'.format(img_index)
+    #print ("Generate Image : ", img_index)
 
     if not flags.viz:
         fname = os.path.join(flags.save_dir, base_name + '.jpg')
@@ -88,7 +89,7 @@ def generate_img(img_index, q=None):
 
         if q is not None:
             q.put(label)
-
+            #print ("q size : ", q.qsize())
         with lock:
             counter.value += 1
             print_end = '\n' if counter.value == flags.num_img else '\r'
@@ -137,7 +138,7 @@ if __name__ == "__main__":
     if utils.get_platform() == "OS X":
         mp.set_start_method('spawn', force=True)
     generate_img(1)
-    
+    #mp.set_start_method('spawn', force=True)
     #flags.viz = 1
     if flags.viz == 1:
         flags.num_processes = 1
