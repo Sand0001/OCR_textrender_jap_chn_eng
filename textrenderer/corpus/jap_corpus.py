@@ -9,9 +9,9 @@ class JAPCorpus(Corpus):
 
     def load_chars(self):
         self.chars = set()
-        for line in open("./data/chars/japchn.txt"):
+        for line in open("./data/chars/japeng.txt"):
             self.chars.add(line.strip('\r\n'))
-        print ("Load JAPCHN CHARS : ", len(self.chars))
+        print ("Load JAPENG CHARS : ", len(self.chars))
 
     def strQ2B(self, ustring):
         """全角转半角"""
@@ -70,7 +70,7 @@ class JAPCorpus(Corpus):
     def load_balanced_sample(self):
         self.single_words_list = []
         for line in open("./data/corpus/singleword.dat"):
-            parts = line.split(' ')
+            parts = line.strip('\r\n ').split(' ')
             self.single_words_list.append(parts[0])
         print ("Load Single Word List : ", len(self.single_words_list))
 
@@ -78,7 +78,9 @@ class JAPCorpus(Corpus):
         """
         Load one corpus file as one line , and get random {self.length} words as result
         """
+
         self.load_chars()
+        self.load_balanced_sample()
         self.load_corpus_path()
         #self.load_balanced_sample()
 
@@ -128,14 +130,14 @@ class JAPCorpus(Corpus):
         # 每次 gen_word，随机选一个预料文件，随机获得长度为 word_length 的字符
 
         #补充一下单字，特别是那种频次特别低的单字
-        r = random.randint(0, 15)
+        r = random.randint(0, 10)
         #print (r, len(self.single_words_list))
         if r == 0 and len(self.single_words_list) > 0:
             word = ''
             for i in range(0, self.length):
                 r_i = random.randint(0, len(self.single_words_list) - 1)   
                 word += self.single_words_list[r_i]
-            return word, self.iseng(word)
+            return word, 'jap'
 
         line = random.choice(self.corpus)
 
@@ -149,7 +151,7 @@ class JAPCorpus(Corpus):
         length = rand_len
         while cur_len < length and start < len(line):
             c = line[start]
-            if self.ischinese(c):
+            if self.isjap(c):
                 cur_len += 2
             else:
                 cur_len += 1
