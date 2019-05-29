@@ -398,7 +398,8 @@ class Renderer(object):
         if self.show:
             print ("Before Resize : ", dst.shape)
             self.plt_show(dst)
-        dst = cv2.resize(dst, (dst_width, self.out_height), interpolation=cv2.INTER_CUBIC)
+         #这里务必选择LINEAR，否则会出现白边
+        dst = cv2.resize(dst, (dst_width, self.out_height), interpolation=cv2.INTER_LINEAR)
 
         return dst, dst_bbox
 
@@ -428,8 +429,8 @@ class Renderer(object):
             
         
 
-
-        bg_mean = int(np.mean(word_roi_bg) * (2 / 3))
+        #出现一些更不清晰的样本
+        bg_mean = int(np.mean(word_roi_bg) * (4 / 5))
         #if bg_mean < 
 
         word_color = random.randint(0, bg_mean)

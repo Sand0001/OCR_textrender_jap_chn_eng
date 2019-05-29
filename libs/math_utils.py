@@ -58,7 +58,15 @@ def warpPerspective(src, M33, sl, gpu):
         from libs.gpu.GpuWrapper import cudaWarpPerspectiveWrapper
         dst = cudaWarpPerspectiveWrapper(src.astype(np.uint8), M33, (sl, sl), cv2.INTER_CUBIC)
     else:
-        dst = cv2.warpPerspective(src, M33, (sl, sl), flags=cv2.INTER_CUBIC)
+        #避免了白边，真是服了之前的INTER_CUBIC
+        r = random.randint(1, 2)
+        if r == 0:
+            dst = cv2.warpPerspective(src, M33, (sl, sl), flags=cv2.INTER_CUBIC)
+        if r == 1:
+            dst = cv2.warpPerspective(src, M33, (sl, sl), flags=cv2.INTER_LINEAR)
+        if r == 2:
+            dst = cv2.warpPerspective(src, M33, (sl, sl), flags=cv2.INTER_NEAREST)
+        #dst = cv2.warpPerspective(src, M33, (sl, sl), flags=cv2.INTER_CUBIC)
     return dst
 
 
