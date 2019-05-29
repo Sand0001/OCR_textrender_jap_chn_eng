@@ -11,8 +11,8 @@ from libs.font_utils import check_font_chars, load_font
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Find chars not support by some fonts')
     #parser.add_argument('--chars_file', type=str, default='./data/chars/chn.txt')
-    parser.add_argument('--chars_file', type=str, default='./data/corpus/singleword.dat')
-    parser.add_argument('--font_dir', type=str, default='./data/fonts/chn')
+    parser.add_argument('--chars_file', type=str, default='./data/chars/japeng.txt')
+    parser.add_argument('--font_dir', type=str, default='./data/fonts/jap')
     parser.add_argument('--delete', action="store_true", default=False,
                         help='whether or not to delete font which not full support the chars_file')
 
@@ -45,10 +45,10 @@ if __name__ == '__main__':
     print(useful_fonts)
     print(illegal_unsupported_chars)
     char_list = []
-    with open('new_chn.txt', 'w') as f:
+    with open('new_japeng.txt', 'w') as f:
         #先写入一个空格
         f.write(' \n' )
-        for line in open('data/chars/chn.txt') :
+        for line in open('data/chars/japeng.txt') :
             char = line.strip('\r\n ')
             if len(char) > 0:
                 if char in illegal_unsupported_chars:
@@ -58,10 +58,11 @@ if __name__ == '__main__':
     with open('new_singleword.dat', 'w') as f:
         #先写入一个空格
         #f.write(' \n' )
-        for line in open('data/corpus/singleword.dat') :
+        for line in open('data/chars/singleword.dat') :
             char = line.strip('\r\n ')
             if len(char) > 0:
                 if char in illegal_unsupported_chars:
                     continue
                 f.write(char + '\n')                
     
+ 
