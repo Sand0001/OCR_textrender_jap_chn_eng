@@ -828,8 +828,8 @@ class Renderer(object):
         height = img.shape[0]
         width = img.shape[1]
         self.dmsg ("-*- APPLY prydown ", scale)
-        out = cv2.resize(img, (int(width / scale), int(height / scale)), interpolation=cv2.INTER_AREA)
-        return cv2.resize(out, (width, height), interpolation=cv2.INTER_AREA), scale
+        out = cv2.resize(img, (int(width / scale), int(height / scale)), interpolation=cv2.INTER_LINEAR)
+        return cv2.resize(out, (width, height), interpolation=cv2.INTER_LINEAR), scale
 
     def reverse_img(self, word_img):
         offset = np.random.randint(-10, 10)
