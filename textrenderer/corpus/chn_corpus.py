@@ -282,7 +282,8 @@ class ChnCorpus(Corpus):
         #r = 1
         #print ("GET SAMPLE ", r, len(self.has_been_created_text))
         #print (r, len(self.single_words_list))
-        if r == 0 and len(self.single_words_list) > 0:#and self.prob(0.25):
+        #if False and len(self.single_words_list) > 0 and self.prob(0.02):
+        if len(self.single_words_list) > 0 and self.prob(0.1):
             word = ''
             for i in range(0, self.length):
                 r_i = random.randint(0, len(self.single_words_list) - 1)   
@@ -302,7 +303,7 @@ class ChnCorpus(Corpus):
         
         #选择稀有词所在的位置进行嘎嘎
         #降低概率
-        if False and r == 1 and corpus.language == 'chn' and len(corpus.low_charset_level_list) > 0 and self.prob(0.25):
+        if False and corpus.language == 'chn' and len(corpus.low_charset_level_list) > 0 and self.prob(0.25):
             line = corpus.content
             r_i = random.randint(0, len(corpus.low_charset_level_list) - 1)
             index_list = corpus.low_char_index_dct[ corpus.low_charset_level_list[r_i]]
