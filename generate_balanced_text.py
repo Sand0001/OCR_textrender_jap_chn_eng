@@ -26,6 +26,12 @@ for line in open(sys.argv[1]):
 		else:
 			word_dct[part] = 1
 
+#没在语料中出现过的，也补充进来
+for char in char_dct:
+    if char not in word_dct:
+        word_dct[char] = 1
+
+
 
 balance_word_list = []
 #最少也得要200
