@@ -430,7 +430,7 @@ class Renderer(object):
         
 
         #出现一些更不清晰的样本
-        bg_mean = int(np.mean(word_roi_bg) * (3 / 4))
+        bg_mean = int(np.mean(word_roi_bg) * (4 / 5))
         #if bg_mean < 
 
         word_color = random.randint(0, bg_mean)
