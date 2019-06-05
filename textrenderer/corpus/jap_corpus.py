@@ -67,6 +67,16 @@ class JAPCorpus(Corpus):
                 #jap_num += 1
         return False
 
+    def prob(self, probability):
+        r = random.randint(0, 100)
+        #print ("Prob : ", r)
+        if r <= probability * 100:
+            return True
+        else:
+            return False
+
+
+
     def load_balanced_sample(self):
         self.single_words_list = []
         for line in open("./data/corpus/singleword.dat"):
@@ -130,9 +140,9 @@ class JAPCorpus(Corpus):
         # 每次 gen_word，随机选一个预料文件，随机获得长度为 word_length 的字符
 
         #补充一下单字，特别是那种频次特别低的单字
-        r = random.randint(0, 10)
+        #r = random.randint(0, 30)
         #print (r, len(self.single_words_list))
-        if r == 0 and len(self.single_words_list) > 0:
+        if self.prob(0.1) and len(self.single_words_list) > 0:
             word = ''
             for i in range(0, self.length):
                 r_i = random.randint(0, len(self.single_words_list) - 1)   
@@ -140,7 +150,9 @@ class JAPCorpus(Corpus):
             return word, 'jap'
 
         line = random.choice(self.corpus)
-
+        #日文多一点点
+        if self.iseng(line) and self.prob(0.3):
+            line = random.choice(self.corpus)
         length = self.length
         #if self.iseng(line):
         length = 2 * self.length
