@@ -3,6 +3,17 @@ import numpy as np
 
 from textrenderer.corpus.corpus import Corpus
 
+class DIPCorpus:
+    def __init__(self):
+        self.content = ''
+        self.language = None
+        self.eng_whitespace_pos_list = []
+        self.low_char_index_dct = {}
+        self.low_charset_level_list = []
+
+    
+
+
 
 class JAPCorpus(Corpus):
 
@@ -135,6 +146,76 @@ class JAPCorpus(Corpus):
             
             if len(whole_line) > self.length:
                 self.corpus.append(whole_line)
+                eng_whitespace_pos_list = []
+                language = 'jap'
+                if self.iseng(whole_line):
+                    language = 'eng'
+                    for index in range(0, len(whole_line)):
+                        if whole_line[index] == ' ':
+                            eng_whitespace_pos_list.append(index)
+                corpus = DIPCorpus()
+                corpus.content = whole_line
+                corpus.eng_whitespace_pos_list = eng_whitespace_pos_list
+                corpus.low_char_index_dct = low_char_index_dct
+                corpus.low_charset_level_list = low_charset_level_list
+                corpus.language = language
+                self.corpus.append(corpus)
+
+    #尝试找到一个完整单词的界限，尽量不要截断单词
+    def get_content_of_len_from_pos(self, content, length, pos, max_step = 6):
+        word = ''
+        cur_len = 0
+        start = pos
+        #rand_len = length  +  (random.randint(0, 8) - 4)
+        #length = rand_len
+        while cur_len < length and start < len(content):
+            c = content[start]
+            if self.ischinese(c):
+                cur_len += 2
+            else:
+                cur_len += 1
+            word += content[start]
+            start += 1
+        isalpha = lambda  x: x>= 'a' and x<='z' or x >= 'A' and x <= 'Z'
+        #如果结尾是个单词，那么往后继续查， 直到找到空格，尽量保证单词的完整性
+        if isalpha(word[len(word) - 1]):
+            while cur_len < length + max_step and start < len(content):
+                c = content[start]
+                if c == ' ':
+                    break
+                if self.ischinese(c):
+                    cur_len += 2
+                else:
+                    cur_len += 1
+                word += content[start]
+                start += 1
+        word = word.strip(' ')
+        return word
+
+
+    #从一个语料中抽取一截
+    def choose_line(self, corpus):
+        line = corpus.content
+        language = corpus.language
+        eng_whitespace_pos_list = corpus.eng_whitespace_pos_list
+        length = self.length
+        #if self.iseng(line):
+        #汉字算长度2，英文算1
+        length = 2 * self.length
+        ##尝试找到一个完整单词的界限，尽量不要截断单词，最多尝试6步
+        max_step = 6
+
+        if language == 'eng':
+            pos = np.random.randint(0, len(eng_whitespace_pos_list) - 1)
+            start = eng_whitespace_pos_list[pos]
+            start += 1
+        else:
+            start = np.random.randint(0, len(line) - length - max_step)
+            length = length  +  (random.randint(0, 8) - 4)
+
+        return self.get_content_of_len_from_pos(line, length, start, max_step)
+
+
 
     def get_sample(self, img_index):
         # 每次 gen_word，随机选一个预料文件，随机获得长度为 word_length 的字符
@@ -142,38 +223,20 @@ class JAPCorpus(Corpus):
         #补充一下单字，特别是那种频次特别低的单字
         #r = random.randint(0, 30)
         #print (r, len(self.single_words_list))
-        if self.prob(0.1) and len(self.single_words_list) > 0:
+        if self.prob(0.02) and len(self.single_words_list) > 0:
             word = ''
             for i in range(0, self.length):
                 r_i = random.randint(0, len(self.single_words_list) - 1)   
                 word += self.single_words_list[r_i]
             return word, 'jap'
 
-        line = random.choice(self.corpus)
-        #日文多一点点
-        if self.iseng(line) and self.prob(0.3):
-            line = random.choice(self.corpus)
-        length = self.length
-        #if self.iseng(line):
-        length = 2 * self.length
-        start = np.random.randint(0, len(line) - length)
-        word = ''
-        cur_len = 0
-        rand_len = length  +  (random.randint(0, 8) - 4)
-        length = rand_len
-        while cur_len < length and start < len(line):
-            c = line[start]
-            if self.isjap(c):
-                cur_len += 2
-            else:
-                cur_len += 1
-            word += line[start]
-            start += 1
-        language = 'chn'
-        if self.iseng(line):
-            language = 'eng'
-        if self.isjap(line[0:10]):
-            language = 'jap'
+        corpus = random.choice(self.corpus)
+        #减少一些英文的比例
+        if corpus.language == 'eng' and  self.prob(0.2):
+            corpus = random.choice(self.corpus)
+
+        word = self.choose_line(corpus)
+        language = corpus.language
         #print (line[0:10], language)
         #word = line[start:start + length]
         #不能让文本的开始和结束有空格的出现
