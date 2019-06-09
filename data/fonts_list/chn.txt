@@ -1,4 +1,5 @@
 ./data/fonts/chn/msyh.ttc
+./data/fonts/chn/Traffic Specified Italic.ttf
 ./data/fonts/chn/Songti.ttc
 ./data/fonts/chn/Libian.ttc
 ./data/fonts/chn/STHeiti Light.ttc
