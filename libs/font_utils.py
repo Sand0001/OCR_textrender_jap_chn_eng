@@ -44,11 +44,11 @@ def get_font_paths_from_list(list_filename):
     for font_path in fonts:
         if 'chn' in font_path:
             font_dct['chn'].append(font_path)
-            font_dct['eng'].append(font_path)
+            #font_dct['eng'].append(font_path)
         else:
             if 'jap' in font_path:
                 font_dct['jap'].append(font_path)
-                font_dct['eng'].append(font_path)
+                #font_dct['eng'].append(font_path)
             else:
                 font_dct['eng'].append(font_path)
     return font_dct
