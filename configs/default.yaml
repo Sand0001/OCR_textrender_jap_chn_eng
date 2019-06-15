@@ -126,8 +126,8 @@ emboss:
   fraction: 0.1
 
 sharp:
-  enable: false
-  fraction: 0.2
+  enable: true
+  fraction: 0.05
 #腐蚀
 erode:
   enable: true
