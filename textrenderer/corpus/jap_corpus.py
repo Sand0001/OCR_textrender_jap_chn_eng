@@ -237,6 +237,12 @@ class JAPCorpus(Corpus):
 
         word = self.choose_line(corpus)
         language = corpus.language
+        if language == 'eng' and self.prob(0.02):
+            #有一定的几率全大写
+            word = word.upper()
+            #有一定的几率首字母大写 TODO 
+            #if self.prob(0.02):
+            #    word 
         #print (line[0:10], language)
         #word = line[start:start + length]
         #不能让文本的开始和结束有空格的出现

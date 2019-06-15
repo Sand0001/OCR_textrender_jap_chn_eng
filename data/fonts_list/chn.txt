@@ -108,6 +108,13 @@
 ./data/fonts/eng/Walkway_Oblique_UltraBold.ttf
 ./data/fonts/eng/Walkway_SemiBold.ttf
 ./data/fonts/eng/Walkway_UltraBold.ttf
+./data/fonts/eng/Courier New Bold Italic.ttf
+./data/fonts/eng/Courier New Bold.ttf
+./data/fonts/eng/Courier New Italic.ttf
+./data/fonts/eng/Courier New.ttf
+./data/fonts/eng/Futura.ttc
+./data/fonts/eng/Helvetica.ttc
+./data/fonts/eng/Rockwell.ttc
 ./data/fonts/jap/YuGothic-Bold.otf
 ./data/fonts/jap/YuGothic-Medium.otf
 ./data/fonts/jap/ToppanBunkyuMinchoPr6N-Regular.otf

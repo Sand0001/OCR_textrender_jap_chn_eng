@@ -361,6 +361,13 @@ class ChnCorpus(Corpus):
             #raise Exception("Failed to found sample")
             return None
         self.has_been_created_text[word] = 1
+        if language == 'eng':
+            #有一定的几率全大写
+            if self.prob(0.02):
+                word = word.upper()
+            #有一定的几率首字母大写 TODO 
+            #if self.prob(0.02):
+            #    word = 
         #print ("Choose Word : [", word , "]" , len(word), language)
         #word = line[start:start + length]
         #不能让文本的开始和结束有空格的出现
