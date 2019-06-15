@@ -283,7 +283,7 @@ class ChnCorpus(Corpus):
         #print ("GET SAMPLE ", r, len(self.has_been_created_text))
         #print (r, len(self.single_words_list))
         #if False and len(self.single_words_list) > 0 and self.prob(0.02):
-        if len(self.single_words_list) > 0 and self.prob(0.1):
+        if len(self.single_words_list) > 0 and self.prob(0.02):
             word = ''
             for i in range(0, self.length):
                 r_i = random.randint(0, len(self.single_words_list) - 1)   
@@ -335,6 +335,9 @@ class ChnCorpus(Corpus):
             if word in self.has_been_created_text:
                 #print ("choose already exists : ", word)
                 continue
+            OK = True
+            break
+            '''
             #平衡样本
             if self.balanced_sample(word, language):
                 OK = True
@@ -343,7 +346,7 @@ class ChnCorpus(Corpus):
             else:
                 #print ("Found unBalanced word : ", word)
                 #70%的概率保留非平衡样本
-                if self.prob(0.5):
+                if self.prob(0.75):
                     OK = True
                     #print ("preserve unBalanced word : ", word)
                     break
@@ -351,6 +354,7 @@ class ChnCorpus(Corpus):
                     pass
                     #print ("Abandon unBalanced word : ", word)
                 #如果全是高频词，那么有一定的概率保留
+            '''
 
         if False == OK:
             #print  ("failed to find sample after tried : ", retry_num)
