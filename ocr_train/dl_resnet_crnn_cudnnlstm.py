@@ -129,7 +129,11 @@ def gen(data_file, image_path, batchsize=128, maxlabellength=32, imagesize=(32, 
                 #转成w * h
                 x[idx] = np.expand_dims(img, axis=2).swapaxes(0,1)
                 label = image_label[fname]
-                label_idx_list = [encode_dct[c] for c in label]
+                for c in label:
+                    if c not in encode_dct:
+                        print ("Label : ", label, " contains illegal char : ", c)
+                label_idx_list = [encode_dct.get(c, 0) for c in label]
+                #label_idx_list = [encode_dct[c] for c in label]
                 label_length[idx] = len(label_idx_list)
                 #不太明白这里为什么要减去2
                 #跟两个MaxPooling有关系?
