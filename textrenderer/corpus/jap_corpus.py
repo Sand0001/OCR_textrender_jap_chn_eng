@@ -145,7 +145,7 @@ class JAPCorpus(Corpus):
             whole_line = ''.join(filter(lambda x: x in self.chars, whole_line))
             
             if len(whole_line) > self.length:
-                self.corpus.append(whole_line)
+                #self.corpus.append(whole_line)
                 eng_whitespace_pos_list = []
                 language = 'jap'
                 if self.iseng(whole_line):
