@@ -20,6 +20,7 @@ import libs.font_utils as font_utils
 from textrenderer.corpus.corpus_utils import corpus_factory
 from textrenderer.renderer import Renderer
 from tenacity import retry
+import random
 
 lock = mp.Lock()
 counter = mp.Value('i', 0)
@@ -83,8 +84,9 @@ def generate_img(img_index, q=None):
 
     if not flags.viz:
         fname = os.path.join(flags.save_dir, base_name + '.jpg')
-        cv2.imwrite(fname, im)
-
+        #cv2.imwrite(fname, im)
+        quality = random.randint(55, 95)
+        cv2.imwrite(fname, im, [int(cv2.IMWRITE_JPEG_QUALITY), quality])
         label = "{} {}".format(base_name, word)
 
         if q is not None:
