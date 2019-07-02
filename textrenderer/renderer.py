@@ -114,9 +114,13 @@ class Renderer(object):
         if apply(self.cfg.crop):
             text_box_pnts = self.apply_crop(text_box_pnts, self.cfg.crop)
         self.end(t, "apply crop ")
+        # if self.show:
+        #     self.plt_show(word_img, text_box_pnts, title = "before line")
         if apply(self.cfg.line):
-            word_img, text_box_pnts = self.liner.apply(word_img, text_box_pnts, word_color)
+            word_img, text_box_pnts = self.liner.apply(word_img, text_box_pnts, word_color,word,font)
             self.dmsg("After draw line")
+        # if self.show:
+        #     self.plt_show(word_img, text_box_pnts, title = "after line")
         #print ("After Apply Line", text_box_pnts, word_img.shape, type(word_img))
         #test_image = draw_box(word_img, text_box_pnts, (0, 255, 155))
         #plt.imshow(test_image)
