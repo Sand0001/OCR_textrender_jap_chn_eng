@@ -1,8 +1,9 @@
 import random
 import cv2
 import numpy as np
-
-
+import matplotlib.pyplot as plt
+from libs.utils import prob
+import re
 class LineState(object):
     tableline_x_offsets = range(8, 40)
     tableline_y_offsets = range(3, 10)
@@ -21,7 +22,7 @@ class Liner(object):
         self.linestate = LineState()
         self.cfg = cfg
 
-    def apply(self, word_img, text_box_pnts, word_color):
+    def apply(self, word_img, text_box_pnts, word_color,word,font):
         """
         :param word_img:  word image with big background
         :param text_box_pnts: left-top, right-top, right-bottom, left-bottom of text word
@@ -47,26 +48,115 @@ class Liner(object):
 
         line_effect_func = np.random.choice(funcs, p=line_p)
 
-        return line_effect_func(word_img, text_box_pnts, word_color)
+        return line_effect_func(word_img, text_box_pnts, word_color,word,font)
 
-    def apply_under_line(self, word_img, text_box_pnts, word_color):
+    def apply_under_line(self, word_img, text_box_pnts, word_color,word,font,):
         y_offset = random.choice([0, 1])
 
         text_box_pnts[2][1] += y_offset
         text_box_pnts[3][1] += y_offset
+        #print(word, font)
+
+
+
 
         line_color = word_color + random.randint(0, 10)
+        # plt.figure('befor line')
+        # plt.imshow(word_img)
+        # plt.show()
+        #if prob(0.5): #0.5的概率是虚线下划线
+        leftBottomX, leftBottomY = text_box_pnts[3][0], text_box_pnts[3][1]
+        rightBottomX, rightBottomY = text_box_pnts[2][0], text_box_pnts[2][1]
+        #divded = len(word)
+        chars_size = []
+        leftBottomX_tmp = leftBottomX
 
-        dst = cv2.line(word_img,
-                       (text_box_pnts[2][0], text_box_pnts[2][1]),
-                       (text_box_pnts[3][0], text_box_pnts[3][1]),
-                       color=line_color,
-                       thickness=1,
-                       lineType=cv2.LINE_AA)
+        if prob(0): #0.3概率为部分虚线或者实线下划线
+            word_split = re.split('\.|,|。|？|！|\n| |；|、|;|"：|。"|，"|!"',word)
+            if len(word_split)>0:
+                sub_word_index_list_in_word = []
+                for i in range(np.random.randint(len(word_split))):  # 随机挑选n个word
+                    a = np.random.randint(len(word_split)) #选取n个word的index
+                    sub_word_index_list_in_word_sub =[(i.start(),i.end())for i in re.finditer(word_split[a],word)]
+                    sub_index = np.random.randint(len(sub_word_index_list_in_word_sub))
+                    sub_word_index_list_in_word.append(sub_word_index_list_in_word_sub[sub_index])
+                    # if a not in random_word_index_list:
+                    #     random_word_index_list.append(a)
+                    # else:
+                    #     continue
+
+                thickness = np.random.randint(1, 3)
+                for i in range(len(word)):
+                    size = font.getsize(word[i])
+                    chars_size.append(size)
+                    #print(size)
+                    # xStep = (rightBottomX - leftBottomX) // divded
+                    # yStep = (rightBottomY - leftBottomY) // divded
+
+                    # for i in range(0, divded - 1):
+                    #print('draw cor',leftBottomX_tmp,leftBottomY)
+
+
+                    if word[i]!= ' ':
+                        if len(sub_word_index_list_in_word)!=0:
+                            for index in sub_word_index_list_in_word:
+                                if i >index[0]-1 and i <index[1]+1:
+                                    if prob(0): #部分虚线
+                                        draw_leftBottomX_tmp = leftBottomX_tmp+2
+                                        draw_rightBottomX_tmp = leftBottomX_tmp + size[0] - 2
+                                    else:
+                                        draw_leftBottomX_tmp = leftBottomX_tmp
+                                        draw_rightBottomX_tmp = leftBottomX_tmp + size[0]
+
+                                    dst = cv2.line(word_img, (draw_leftBottomX_tmp , leftBottomY ),
+                                               (draw_rightBottomX_tmp, leftBottomY ),
+                                               color=line_color,
+                                               thickness=thickness,
+                                               lineType=cv2.LINE_AA)
+
+
+                    leftBottomX_tmp = leftBottomX_tmp + size[0]
+            # print(leftBottomX_tmp)
+            # plt.figure('after line')
+            # plt.imshow(word_img)
+            # plt.show()
+        else:  #全部虚线或者实线下划线
+            thickness = np.random.randint(1, 3)
+            for i in range(len(word)):
+                size = font.getsize(word[i])
+                chars_size.append(size)
+                # print(size)
+                # xStep = (rightBottomX - leftBottomX) // divded
+                # yStep = (rightBottomY - leftBottomY) // divded
+
+                # for i in range(0, divded - 1):
+                # print('draw cor',leftBottomX_tmp,leftBottomY)
+                if prob(0):#0.5概率是全部虚线
+                    draw_leftBottomX_tmp = leftBottomX_tmp + 2
+                    draw_rightBottomX_tmp = leftBottomX_tmp + size[0] - 2
+
+                    if word[i] != ' ':
+                        dst = cv2.line(word_img, (draw_leftBottomX_tmp, leftBottomY),
+                                       (draw_rightBottomX_tmp, leftBottomY),
+                                       color=line_color,
+                                       thickness=thickness,
+                                       lineType=cv2.LINE_AA)
+                else: #全部实线
+                    draw_leftBottomX_tmp = leftBottomX_tmp
+                    draw_rightBottomX_tmp = leftBottomX_tmp + size[0]
+                    dst = cv2.line(word_img, (draw_leftBottomX_tmp, leftBottomY),
+                                   (draw_rightBottomX_tmp, leftBottomY),
+                                   color=line_color,
+                                   thickness=thickness,
+                                   lineType=cv2.LINE_AA)
+                leftBottomX_tmp = leftBottomX_tmp + size[0]
+
+
+
 
         return dst, text_box_pnts
 
-    def apply_table_line(self, word_img, text_box_pnts, word_color):
+    def apply_table_line(self, word_img, text_box_pnts, word_color,word,font):
         """
         共有 8 种可能的画法，横线横穿整张 word_img
         0/1/2/3: 仅单边（左上右下）
