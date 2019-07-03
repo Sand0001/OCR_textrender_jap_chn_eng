@@ -98,7 +98,7 @@ noise:
 
 line:
   enable: true
-  fraction: 0.03
+  fraction: 0.2
 
   under_line:
     enable: true
