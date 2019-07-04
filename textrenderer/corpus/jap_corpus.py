@@ -90,7 +90,7 @@ class JAPCorpus(Corpus):
 
     def load_balanced_sample(self):
         self.single_words_list = []
-        for line in open("./data/corpus/singleword.dat"):
+        for line in open("./data/corpus/singleword_jap.dat"):
             parts = line.strip('\r\n ').split(' ')
             self.single_words_list.append(parts[0])
         print ("Load Single Word List : ", len(self.single_words_list))
@@ -156,8 +156,8 @@ class JAPCorpus(Corpus):
                 corpus = DIPCorpus()
                 corpus.content = whole_line
                 corpus.eng_whitespace_pos_list = eng_whitespace_pos_list
-                corpus.low_char_index_dct = low_char_index_dct
-                corpus.low_charset_level_list = low_charset_level_list
+                corpus.low_char_index_dct = None
+                corpus.low_charset_level_list = None
                 corpus.language = language
                 self.corpus.append(corpus)
 
