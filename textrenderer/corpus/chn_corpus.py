@@ -130,7 +130,7 @@ class ChnCorpus(Corpus):
         self.load_corpus_path()
         self.load_charset_level()
         self.load_balanced_sample()
-        self.load_corpus_path()
+
         self.load_subscript()
         self.has_been_created_text = {}
         #记住这里多个corpus，这样的话，需要
@@ -378,7 +378,7 @@ class ChnCorpus(Corpus):
             #有一定的几率全大写
             if self.prob(0.02):
                 word = word.upper()
-            if self.prob(1):
+            if self.prob(0.02):
                 subscript_index_list = np.random.randint(0,len(word),(np.random.randint(len(word)//2)))
                 for subscript_index in subscript_index_list:
                     word =word.replace(word[subscript_index],np.random.choice(self.subscript_list))
