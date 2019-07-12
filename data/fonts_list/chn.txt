@@ -120,3 +120,19 @@
 ./data/fonts/jap/ToppanBunkyuMinchoPr6N-Regular.otf
 ./data/fonts/jap/ToppanBunkyuMidashiMinchoStdN-ExtraBold.otf
 ./data/fonts/jap/ToppanBunkyuMidashiGothicStdN-ExtraBold.otf
+./data/fonts/eng/Courier New Bold Italic.ttf
+./data/fonts/eng/Courier New Bold.ttf
+./data/fonts/eng/Courier New Italic.ttf
+./data/fonts/eng/Courier New.ttf
+./data/fonts/eng/Courier New Bold Italic.ttf
+./data/fonts/eng/Courier New Bold.ttf
+./data/fonts/eng/Courier New Italic.ttf
+./data/fonts/eng/Courier New.ttf
+./data/fonts/eng/Courier New Bold Italic.ttf
+./data/fonts/eng/Courier New Bold.ttf
+./data/fonts/eng/Courier New Italic.ttf
+./data/fonts/eng/Courier New.ttf
+./data/fonts/eng/Courier New Bold Italic.ttf
+./data/fonts/eng/Courier New Bold.ttf
+./data/fonts/eng/Courier New Italic.ttf
+./data/fonts/eng/Courier New.ttf
