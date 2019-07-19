@@ -103,7 +103,7 @@ def load_chars(filepath):
             line = f.readline()
             if not line:
                 break
-            ret += line[0]
+            ret += line.strip('\n')
     return ret
 
 
