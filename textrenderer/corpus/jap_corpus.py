@@ -22,6 +22,7 @@ class JAPCorpus(Corpus):
         self.chars = set()
         for line in open("./data/chars/japeng.txt"):
             self.chars.add(line.strip('\r\n'))
+        #print(self.chars)
         print ("Load JAPENG CHARS : ", len(self.chars))
 
     def strQ2B(self, ustring):
@@ -94,6 +95,16 @@ class JAPCorpus(Corpus):
             parts = line.strip('\r\n ').split(' ')
             self.single_words_list.append(parts[0])
         print ("Load Single Word List : ", len(self.single_words_list))
+    def load_subscript(self):
+        self.subscript_list = []
+        for line in open('./data/corpus/suscripts.dat'):
+            parts = line.strip('\r\n ').split(' ')
+            if parts[0] not in self.charsets:
+                print(parts[0])
+                continue
+            self.subscript_list.append(parts[0])
+
+        print("Load subscripts List : ", len(self.subscript_list))
 
     def load(self):
         """
@@ -102,6 +113,7 @@ class JAPCorpus(Corpus):
 
         self.load_chars()
         self.load_balanced_sample()
+        self.load_subscript()
         self.load_corpus_path()
         #self.load_balanced_sample()
 
@@ -228,6 +240,7 @@ class JAPCorpus(Corpus):
             for i in range(0, self.length):
                 r_i = random.randint(0, len(self.single_words_list) - 1)   
                 word += self.single_words_list[r_i]
+
             return word, 'jap'
 
         corpus = random.choice(self.corpus)
@@ -240,10 +253,58 @@ class JAPCorpus(Corpus):
         if language == 'eng' and self.prob(0.02):
             #有一定的几率全大写
             word = word.upper()
+
             #有一定的几率首字母大写 TODO 
             #if self.prob(0.02):
             #    word 
         #print (line[0:10], language)
         #word = line[start:start + length]
         #不能让文本的开始和结束有空格的出现
+
+        return word.strip(' '), language
+
+
+    def get_sample_add_script(self, img_index):
+        # 每次 gen_word，随机选一个预料文件，随机获得长度为 word_length 的字符
+
+        #补充一下单字，特别是那种频次特别低的单字
+        #r = random.randint(0, 30)
+        #print (r, len(self.single_words_list))
+        if self.prob(0.02) and len(self.single_words_list) > 0:
+            word = ''
+            for i in range(0, self.length):
+                r_i = random.randint(0, len(self.single_words_list) - 1)
+                word += self.single_words_list[r_i]
+            if self.prob(1):   #0.3的概率随机组合角标
+                subscript_index_list = np.random.randint(0, len(word), (np.random.randint(len(word) // 2)))
+                for subscript_index in subscript_index_list:
+                    word = list(word)
+                    word[subscript_index] = np.random.choice(self.subscript_list)
+                    word = ''.join(word)
+            return word, 'jap'
+
+        corpus = random.choice(self.corpus)
+        #减少一些英文的比例
+        if corpus.language == 'eng' and  self.prob(0.2):
+            corpus = random.choice(self.corpus)
+
+        word = self.choose_line(corpus)
+        language = corpus.language
+        if language == 'eng' and self.prob(0.02):
+            #有一定的几率全大写
+            word = word.upper()
+
+            #有一定的几率首字母大写 TODO
+            #if self.prob(0.02):
+            #    word
+        #print (line[0:10], language)
+        #word = line[start:start + length]
+        #不能让文本的开始和结束有空格的出现
+        if self.prob(1):           #  有一定的几率将word中的字母随机替换成角标
+            subscript_index_list = np.random.randint(0,len(word),(np.random.randint(len(word)//2)))
+            for subscript_index in subscript_index_list:
+                word = list(word)
+                word[subscript_index] = np.random.choice(self.subscript_list)
+                word = ''.join(word)
+        print('word',word)
         return word.strip(' '), language
