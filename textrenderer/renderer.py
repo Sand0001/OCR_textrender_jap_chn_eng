@@ -90,7 +90,9 @@ class Renderer(object):
     def gen_img(self, img_index):
         t = self.start()
         lock = None
-        word, font, word_size = self.pick_font(img_index)
+
+        word, font, word_size,font_little = self.pick_font(img_index)
+
         self.end(t, "pick_font")
         self.dmsg("after pick font")
         self.dmsg ("***********************")
@@ -102,7 +104,10 @@ class Renderer(object):
             print ("Word_Size :", word_size,' WORD:', word)
         #如果Wordsize特别小，乘以一个系数也是有问题的
         bg = self.gen_bg(width=word_size[0] + 280, height=word_size[1]  +  96, lock = lock)
-        word_img, text_box_pnts, word_color = self.draw_text_on_bg(word, font, bg)
+        if apply(self.cfg.add_script):
+            word_img, text_box_pnts, word_color = self.draw_add_script_text_on_bg(word, font, bg,font_little)
+        else:
+            word_img, text_box_pnts, word_color = self.draw_text_on_bg(word, font, bg)
         if self.show:
             print ("BG SHAPE : ", bg.shape)
             print ("Word Image : ", word_img.shape)
@@ -500,6 +505,67 @@ class Renderer(object):
 
         return np_img, text_box_pnts, word_color
 
+    def draw_add_script_text_on_bg(self, word, font, bg,font_little):
+        """
+        Draw word in the center of background
+        :param word: word to draw
+        :param font: font to draw word
+        :param bg: background numpy image
+        :return:
+            np_img: word image
+            text_box_pnts: left-top, right-top, right-bottom, left-bottom
+        """
+        bg_height = bg.shape[0]
+        bg_width = bg.shape[1]
+
+        word_size = self.get_word_size(font, word)#
+        word_height = word_size[1]
+        word_width = word_size[0]
+
+        offset = font.getoffset(word)
+
+        pil_img = Image.fromarray(np.uint8(bg))
+        draw = ImageDraw.Draw(pil_img)
+        if self.show:
+            self.plt_show(bg, title='bg')
+        # text_x = random.randint(50, bg_width - word_width - 50)
+        # text_y = random.randint(50, bg_height - word_height - 50)
+
+        # print ("BG_H_W : ( ", bg_height, bg_width,  ")", " Offset : (" , offset , ")", " WordSize : (", word_size, ")", "Text_x", text_x, "Text_y", text_y)
+        # Draw text in the center of bg
+        text_x = int((bg_width - word_width) / 2)
+        text_y = int((bg_height - word_height) / 2)
+        if self.show:
+            print("BG_H_W : ( ", bg_height, bg_width, ")", " Offset : (", offset, ")", " WordSize : (", word_size, ")",
+                  "Text_x", text_x, "Text_y", text_y)
+        word_color = self.get_word_color(bg, text_x, text_y, word_height, word_width)
+
+        if word_color is None:
+            raise Exception
+
+        if apply(self.cfg.random_space):
+            text_x, text_y, word_width, word_height = self.draw_text_with_random_space(draw, font, word, word_color,
+                                                                                       bg_width, bg_height)
+            np_img = np.array(pil_img).astype(np.float32)
+        else:
+            if apply(self.cfg.seamless_clone):
+                np_img = self.draw_text_seamless(font, bg, word, word_color, word_height, word_width, offset)
+            else:                          #   目前只将subscript加入这里 seamless_clone和random_space里没有
+                #self.draw_text_wrapper(draw, word, text_x - offset[0], text_y - offset[1], font, word_color)
+                word_width,word_height = self.draw_text_add_script(draw, word, text_x - offset[0], text_y - offset[1], font, word_color,font_little)
+                # draw.text((text_x - offset[0], text_y - offset[1]), word, fill=word_color, font=font)
+
+                np_img = np.array(pil_img).astype(np.float32)
+
+        text_box_pnts = [
+            [text_x, text_y],
+            [text_x + word_width, text_y],
+            [text_x + word_width, text_y + word_height],
+            [text_x, text_y + word_height]
+        ]
+
+        return np_img, text_box_pnts, word_color
+
     def draw_text_seamless(self, font, bg, word, word_color, word_height, word_width, offset):
         # For better seamlessClone
         seamless_offset = 6
@@ -589,7 +655,37 @@ class Renderer(object):
             self.dmsg ("draw border")
             self.draw_border_text(draw, text, x, y, font, text_color)
         else:
+
             draw.text((x, y), text, fill=text_color, font=font)
+    def draw_text_add_script(self,draw, text, x, y, font, text_color,font_little):
+        word_start = x
+        word_height = 0
+        random_offset =0 # np.random.randint(-1,1)
+        y_up = 0
+        y_down = y
+        for index, t in enumerate(text):
+            if t == '^' and ((ord(text[index + 1]) > 64 and ord(text[index + 1]) < 91) or (
+                    ord(text[index + 1]) > 96 and ord(text[index + 1]) < 123)):                #判定上角标
+                draw.text((x, y+random_offset), text[index + 1], fill=text_color, font=font_little)
+                x += font_little.getsize(text[index + 1])[0]
+                y_down = y+random_offset
+                word_height = max(word_height,font_little.getsize(text[index + 1])[1])
+            elif t == '~' and ((ord(text[index + 1]) > 64 and ord(text[index + 1]) < 91) or (
+                    ord(text[index + 1]) > 96 and ord(text[index + 1]) < 123)):
+                draw.text((x, y + int(font_little.size)+random_offset+1), text[index + 1], fill=text_color, font=font_little)
+                y_up = max(y_up,y + int(font_little.size)+random_offset+1+font_little.getsize(text[index+1])[1])
+                x += font_little.getsize(text[index + 1])[0]
+            else:
+                if (text[index - 1] == '^' or text[index - 1] == '~') and (
+                        (ord(t) > 64 and ord(t) < 91) or (ord(t) > 96 and ord(t) < 123)):
+                    continue
+                draw.text((x, y), t, fill=text_color, font=font)
+                x += font.getsize(t)[0]
+                y_up = max(y_up,y+font.getsize(t)[1])
+        return x-word_start,y_up-y_down
+
+
+
 
     def draw_border_text(self, draw, text, x, y, font, text_color):
         """
@@ -704,7 +800,12 @@ class Renderer(object):
             size: word size, removed offset (width, height)
         """
         try:
-            word, language = self.corpus.get_sample(img_index)
+            if apply(self.cfg.add_script):
+
+                word, language = self.corpus.get_sample_add_script(img_index)
+            else:
+                word, language = self.corpus.get_sample(img_index)
+
 
             #if word is None:
 
@@ -735,14 +836,20 @@ class Renderer(object):
 
             # Font size in point
             font_size = random.randint(self.cfg.font_size.min, self.cfg.font_size.max)
-            font = ImageFont.truetype(font_path, font_size)
 
-            return word, font, self.get_word_size(font, word)
+            font = ImageFont.truetype(font_path, font_size)
+            font_little_size= np.random.randint(font_size//2-1,font_size//2+1)
+            font_little = ImageFont.truetype(font_path, font_little_size)
+            return word, font, self.get_word_size(font, word),font_little
+
+
+            #return word, font, self.get_word_size(font, word)
         except Exception as e:
             print("Retry pick_font: %s" % str(e))
             traceback.print_exc()
             #继续重试
             raise Exception
+
             
 
     def get_word_size(self, font, word):
