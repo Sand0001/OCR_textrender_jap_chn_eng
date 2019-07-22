@@ -13,7 +13,7 @@ from textrenderer.liner import Liner
 from textrenderer.noiser import Noiser
 import libs.font_utils as font_utils
 from textrenderer.background_generator import BackgroundGenerator
-
+import re
 # noinspection PyMethodMayBeStatic
 from textrenderer.remaper import Remaper
 import traceback
@@ -664,21 +664,25 @@ class Renderer(object):
         y_up = 0
         y_down = y
         for index, t in enumerate(text):
-            if t == '^' and ((ord(text[index + 1]) > 64 and ord(text[index + 1]) < 91) or (
-                    ord(text[index + 1]) > 96 and ord(text[index + 1]) < 123)):                #判定上角标
+            if t == '^' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0:
+            # if t == '^' and ((ord(text[index + 1]) > 64 and ord(text[index + 1]) < 91) or (
+            #         ord(text[index + 1]) > 96 and ord(text[index + 1]) < 123) or (
+            #         ord(text[index + 1]) > 47 and ord(text[index + 1]) < 58) ):                #判定上角标
                 draw.text((x, y+random_offset), text[index + 1], fill=text_color, font=font_little)
                 x += font_little.getsize(text[index + 1])[0]
                 y_down = y+random_offset
                 word_height = max(word_height,font_little.getsize(text[index + 1])[1])
-            elif t == '~' and ((ord(text[index + 1]) > 64 and ord(text[index + 1]) < 91) or (
-                    ord(text[index + 1]) > 96 and ord(text[index + 1]) < 123)):
+            elif t =='~' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0:
+            # elif t == '~' and ((ord(text[index + 1]) > 64 and ord(text[index + 1]) < 91) or (
+            #         ord(text[index + 1]) > 96 and ord(text[index + 1]) < 123) or (
+            #         ord(text[index + 1]) > 47 and ord(text[index + 1]) < 58)):
                 draw.text((x, y + int(font_little.size)+random_offset+1), text[index + 1], fill=text_color, font=font_little)
                 y_up = max(y_up,y + int(font_little.size)+random_offset+1+font_little.getsize(text[index+1])[1])
                 x += font_little.getsize(text[index + 1])[0]
             else:
-                if (text[index - 1] == '^' or text[index - 1] == '~') and (
-                        (ord(t) > 64 and ord(t) < 91) or (ord(t) > 96 and ord(t) < 123)):
+                if (text[index - 1] == '^' or text[index - 1] == '~') and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(t)) != 0:
                     continue
+                    #continue
                 draw.text((x, y), t, fill=text_color, font=font)
                 x += font.getsize(t)[0]
                 y_up = max(y_up,y+font.getsize(t)[1])
