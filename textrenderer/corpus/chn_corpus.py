@@ -296,11 +296,15 @@ class ChnCorpus(Corpus):
         #print (r, len(self.single_words_list))
         #if False and len(self.single_words_list) > 0 and self.prob(0.02):
 
-        if len(self.single_words_list) > 0 and self.prob(0.02):
+        if len(self.single_words_list) > 0 and self.prob(1):
             word = ''
             for i in range(0, self.length):
                 r_i = random.randint(0, len(self.single_words_list) - 1)   
                 word += self.single_words_list[r_i]
+            if self.prob(0.3):
+                subscript_index_list = np.random.randint(0, len(word), (np.random.randint(len(word) // 2)))
+                for subscript_index in subscript_index_list:
+                    word = word.replace(word[subscript_index], np.random.choice(self.subscript_list))
             #如果已经出现过了，那么Continue掉
             if word in self.has_been_created_text:
                 #print ("Abandon has_been_created_text word : ", word)
@@ -374,14 +378,17 @@ class ChnCorpus(Corpus):
             #raise Exception("Failed to found sample")
             return None
         self.has_been_created_text[word] = 1
+        print(language)
         if language == 'eng':
             #有一定的几率全大写
             if self.prob(0.02):
                 word = word.upper()
-            if self.prob(0.02):
-                subscript_index_list = np.random.randint(0,len(word),(np.random.randint(len(word)//2)))
-                for subscript_index in subscript_index_list:
-                    word =word.replace(word[subscript_index],np.random.choice(self.subscript_list))
+
+
+        if self.prob(1):
+            subscript_index_list = np.random.randint(0,len(word),(np.random.randint(len(word)//2)))
+            for subscript_index in subscript_index_list:
+                word =word.replace(word[subscript_index],np.random.choice(self.subscript_list))
 
 
             #有一定的几率首字母大写 TODO 
@@ -390,5 +397,51 @@ class ChnCorpus(Corpus):
         #print ("Choose Word : [", word , "]" , len(word), language)
         #word = line[start:start + length]
         #不能让文本的开始和结束有空格的出现
+        return word.strip(' '), language
+    def get_sample_add_script(self, img_index):
+        # 每次 gen_word，随机选一个预料文件，随机获得长度为 word_length 的字符
+
+        #补充一下单字，特别是那种频次特别低的单字
+        #r = random.randint(0, 30)
+        #print (r, len(self.single_words_list))
+        if self.prob(0.02) and len(self.single_words_list) > 0:
+            word = ''
+            for i in range(0, self.length):
+                r_i = random.randint(0, len(self.single_words_list) - 1)
+                word += self.single_words_list[r_i]
+            if self.prob(1):   #0.3的概率随机组合角标
+                subscript_index_list = np.random.randint(0, len(word), (np.random.randint(len(word) // 2)))
+                word = list(word)
+                for subscript_index in subscript_index_list:
+
+                    word[subscript_index] = np.random.choice(self.subscript_list)
+                word = ''.join(word)
+            return word, 'jap'
+
+        corpus = random.choice(self.corpus)
+        #减少一些英文的比例
+        if corpus.language == 'eng' and  self.prob(0.2):
+            corpus = random.choice(self.corpus)
+
+        word = self.choose_line(corpus)
+        language = corpus.language
+        if language == 'eng' and self.prob(0.02):
+            #有一定的几率全大写
+            word = word.upper()
+
+            #有一定的几率首字母大写 TODO
+            #if self.prob(0.02):
+            #    word
+        #print (line[0:10], language)
+        #word = line[start:start + length]
+        #不能让文本的开始和结束有空格的出现
+        if self.prob(0.03):           #  有一定的几率将word中的字母随机替换成角标
+            subscript_index_list = np.random.randint(0,len(word),(np.random.randint(len(word)//2)))
+            word = list(word)
+            for subscript_index in subscript_index_list:
+
+                word[subscript_index] = np.random.choice(self.subscript_list)
+            word = ''.join(word)
+        print('word',word)
         return word.strip(' '), language
 
