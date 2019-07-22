@@ -19,7 +19,7 @@ def parse_args():
     parser.add_argument('--img_width', type=int, default=280,
                         help="If 0, output images will have different width")
 
-    parser.add_argument('--chars_file', type=str, default='./data/chars/japeng.txt',
+    parser.add_argument('--chars_file', type=str, default='./data/chars/chn.txt',
                         help='Chars allowed to be appear in generated images.')
 
     parser.add_argument('--config_file', type=str, default='./configs/default.yaml',
@@ -36,7 +36,7 @@ def parse_args():
                         help='When corpus_mode is chn or eng, text on image will randomly selected from corpus.'
                              'Recursively find all txt file in corpus_dir')
 
-    parser.add_argument('--corpus_mode', type=str, default='jap', choices=['random', 'chn', 'eng', 'list', 'jap'],
+    parser.add_argument('--corpus_mode', type=str, default='chn', choices=['random', 'chn', 'eng', 'list', 'jap'],
                         help='Different corpus type have different load/get_sample method'
                              'random: random pick chars from chars file'
                              'chn: pick continuous chars from corpus'
