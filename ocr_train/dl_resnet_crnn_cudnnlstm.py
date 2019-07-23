@@ -19,6 +19,7 @@ from keras.layers.recurrent import LSTM
 from keras.callbacks import EarlyStopping, ModelCheckpoint, LearningRateScheduler, TensorBoard
 from keras.layers.wrappers import TimeDistributed
 import resnet
+import re
 #from parameter import *
 #K.set_learning_phase(0)
 
@@ -99,7 +100,19 @@ class random_uniform_num():
         return r_n
 
 cur_line = None
+def encode_label(text):
+    label_list = []
+    for index, t in enumerate(text):
 
+        if (t == '^'or t == '~') and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0:
+            label = encode_dct.get(t+text[index+1],0)
+            label_list.append(label)
+        else:
+            if (text[index - 1] == '^' or text[index - 1] == '~') and len(
+                    re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(t)) != 0:
+                continue
+            label_list.append(encode_dct.get(t,0))
+    return label_list
 
 
 def gen(data_file, image_path, batchsize=128, maxlabellength=32, imagesize=(32, 280)):
@@ -132,7 +145,8 @@ def gen(data_file, image_path, batchsize=128, maxlabellength=32, imagesize=(32, 
                 for c in label:
                     if c not in encode_dct:
                         print ("Label : ", label, " contains illegal char : ", c)
-                label_idx_list = [encode_dct.get(c, 0) for c in label]
+                label_idx_list = encode_label(label)
+                #label_idx_list = [encode_dct.get(c, 0) for c in label]
                 #label_idx_list = [encode_dct[c] for c in label]
                 label_length[idx] = len(label_idx_list)
                 #不太明白这里为什么要减去2
