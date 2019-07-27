@@ -133,6 +133,7 @@ class Renderer(object):
         if self.debug:
             word_img = draw_box(word_img, text_box_pnts, (0, 255, 155))
         if self.show:
+            print('text_box_pnt_before Transform',text_box_pnts)
             self.plt_show(word_img, text_box_pnts, title = "before Transform")
 
         if apply(self.cfg.curve):
@@ -563,7 +564,7 @@ class Renderer(object):
             [text_x + word_width, text_y + word_height],
             [text_x, text_y + word_height]
         ]
-
+        #print('text_box_pnts_add_script',text_box_pnts)
         return np_img, text_box_pnts, word_color
 
     def draw_text_seamless(self, font, bg, word, word_color, word_height, word_width, offset):
@@ -661,32 +662,34 @@ class Renderer(object):
         word_start = x
         word_height = 0
         random_offset =0 # np.random.randint(-1,1)
-        y_up = 0
-        y_down = y
+
         for index, t in enumerate(text):
             if t == '^' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0:
-            # if t == '^' and ((ord(text[index + 1]) > 64 and ord(text[index + 1]) < 91) or (
-            #         ord(text[index + 1]) > 96 and ord(text[index + 1]) < 123) or (
-            #         ord(text[index + 1]) > 47 and ord(text[index + 1]) < 58) ):                #判定上角标
+
+                            #判定上角标
                 draw.text((x, y+random_offset), text[index + 1], fill=text_color, font=font_little)
                 x += font_little.getsize(text[index + 1])[0]
-                y_down = y+random_offset
-                word_height = max(word_height,font_little.getsize(text[index + 1])[1])
+
+                word_height = max(word_height,font_little.getsize(text[index + 1])[1]-font_little.getoffset(text[index+1])[1])
             elif t =='~' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0:
             # elif t == '~' and ((ord(text[index + 1]) > 64 and ord(text[index + 1]) < 91) or (
             #         ord(text[index + 1]) > 96 and ord(text[index + 1]) < 123) or (
             #         ord(text[index + 1]) > 47 and ord(text[index + 1]) < 58)):
                 draw.text((x, y + int(font_little.size)+random_offset+1), text[index + 1], fill=text_color, font=font_little)
-                y_up = max(y_up,y + int(font_little.size)+random_offset+1+font_little.getsize(text[index+1])[1])
+
                 x += font_little.getsize(text[index + 1])[0]
+
+                word_height = max(word_height,int(font_little.size)+1+font_little.getsize(text[index+1])[1])
             else:
                 if (text[index - 1] == '^' or text[index - 1] == '~') and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(t)) != 0:
                     continue
-                    #continue
-                draw.text((x, y), t, fill=text_color, font=font)
+                draw.text((x, y+random_offset), t, fill=text_color, font=font)
                 x += font.getsize(t)[0]
-                y_up = max(y_up,y+font.getsize(t)[1])
-        return x-word_start,y_up-y_down
+
+                word_height = max(word_height,font.getsize(t)[1]-font.getoffset(t)[1])
+        #print(int(font.size),'word_height',word_height)
+
+        return x-word_start,word_height
 
 
 
@@ -741,9 +744,9 @@ class Renderer(object):
         """
         Generate random background
         """
-        r = random.randint(2, 4)
+        r = random.randint(2, 6)
         self.dmsg ("randbg : ", r)
-        #r = 1
+        #r = 4
         if r == 1:
             bg = np.array(BackgroundGenerator().quasicrystal(height, width))
             bg = self.apply_gauss_blur(bg, lock=lock)
@@ -759,8 +762,12 @@ class Renderer(object):
             bg = np.array(BackgroundGenerator().gaussian_noise(height, width))
             bg = self.apply_gauss_blur(bg, lock = lock)
             return bg 
-        if r == 4: 
-            bg = np.random.randint(220, 255, (height, width)).astype(np.uint8)
+        if r >3 and r< 6:
+            noise_index = np.random.randint(245,254)
+            bg = np.random.randint(noise_index, 255, (height, width)).astype(np.uint8)
+            # plt.figure('1')
+            # plt.imshow(bg)
+            # plt.show()
             #if random.randint(1,4) < 4:
             bg = self.apply_gauss_blur(bg, lock = lock)
             return bg
