@@ -259,7 +259,7 @@ class ChnCorpus(Corpus):
         #汉字算长度2，英文算1
         length = 2 * self.length
         ##尝试找到一个完整单词的界限，尽量不要截断单词，最多尝试6步
-        max_step = 6
+        max_step = 5
 
         if language == 'eng':
             pos = np.random.randint(0, len(eng_whitespace_pos_list) - 1)
@@ -416,7 +416,7 @@ class ChnCorpus(Corpus):
 
                     word[subscript_index] = np.random.choice(self.subscript_list)
                 word = ''.join(word)
-            return word, 'jap'
+            return word, 'chn'
 
         corpus = random.choice(self.corpus)
         #减少一些英文的比例
@@ -442,6 +442,6 @@ class ChnCorpus(Corpus):
 
                 word[subscript_index] = np.random.choice(self.subscript_list)
             word = ''.join(word)
-        print('word',word)
+        #print('word',word)
         return word.strip(' '), language
 
