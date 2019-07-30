@@ -92,6 +92,7 @@ class Renderer(object):
         lock = None
 
         word, font, word_size,font_little = self.pick_font(img_index)
+        #word = 't_he age-adjusted incidence undefined'
 
         self.end(t, "pick_font")
         self.dmsg("after pick font")
@@ -736,8 +737,10 @@ class Renderer(object):
     def gen_bg(self, width, height, lock):
         if apply(self.cfg.img_bg):
             bg = self.gen_bg_from_image(int(width), int(height), lock)
+            #print('img bg',bg.shape)
         else:
             bg = self.gen_rand_bg(int(width), int(height), lock)
+            print('random',bg.shape)
         return bg
 
     def gen_rand_bg(self, width, height, lock):
@@ -750,6 +753,7 @@ class Renderer(object):
         if r == 1:
             bg = np.array(BackgroundGenerator().quasicrystal(height, width))
             bg = self.apply_gauss_blur(bg, lock=lock)
+            print('1',bg.shape)
             return bg
         if r == 2:   
             bg_high = random.uniform(220, 255)
@@ -757,10 +761,12 @@ class Renderer(object):
             bg = np.random.randint(bg_low, bg_high, (height, width)).astype(np.uint8)
             #if random.randint(1,4) < 4:
             bg = self.apply_gauss_blur(bg, lock=lock)
+            print('2', bg.shape)
             return bg
         if r == 3:  
             bg = np.array(BackgroundGenerator().gaussian_noise(height, width))
             bg = self.apply_gauss_blur(bg, lock = lock)
+            print('3', bg.shape)
             return bg 
         if r >3 and r< 6:
             noise_index = np.random.randint(245,254)
@@ -770,6 +776,7 @@ class Renderer(object):
             # plt.show()
             #if random.randint(1,4) < 4:
             bg = self.apply_gauss_blur(bg, lock = lock)
+            print('4', bg.shape)
             return bg
            
 
@@ -802,6 +809,15 @@ class Renderer(object):
 
         return out
 
+    def choose_font(self,language,font_dct):
+        if language == 'eng':
+            font_path = random.choice(font_dct['eng'])
+        else:
+            if language == 'jap':
+                font_path = random.choice(font_dct['jap'])
+            else:
+                font_path = random.choice(font_dct['chn'])
+        return font_path
     @retry
     def pick_font(self, img_index):
         """
@@ -824,17 +840,20 @@ class Renderer(object):
             if self.clip_max_chars and len(word) > self.max_chars:
                 word = word[:self.max_chars]
             font_dct = self.fonts
+            word = 'RPT/AMV/IRI/IPI001'
             #font_dct = random.choice(self.fonts)
             #different lang  should have different fonts
             #print(font_dct)
-            if language == 'eng':
-                font_path = random.choice(font_dct['eng'])
-            else:
-                if language == 'jap':
-                    font_path = random.choice(font_dct['jap'])
+            # word = 't_he age-adjusted incidence undefined'
+            # font_path = '/fengjing/data_script/OCR_textrender/data/fonts/eng/Walkway_Oblique.ttf'
+            font_path = self.choose_font(language,font_dct)
+            for i in range(10):
+                if '-' in word and 'Walkway' in font_path:
+                    #print('.............')
+                    font_path = self.choose_font(language, font_dct)
                 else:
-                    font_path = random.choice(font_dct['chn'])
-            #print (language, font_path)
+                    break
+            font_path = '/fengjing/data_script/OCR_textrender/data/fonts/eng/calibri bold .ttf'
             if self.strict:
                 unsupport_chars = self.font_unsupport_chars[font_path]
                 for c in word:
@@ -847,6 +866,8 @@ class Renderer(object):
 
             # Font size in point
             font_size = random.randint(self.cfg.font_size.min, self.cfg.font_size.max)
+            #print('font_path',font_path)
+            #if '-' in word :
 
             font = ImageFont.truetype(font_path, font_size)
             font_little_size= np.random.randint(font_size//2-1,font_size//2+1)
