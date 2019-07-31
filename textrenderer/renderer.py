@@ -846,14 +846,21 @@ class Renderer(object):
             #print(font_dct)
             # word = 't_he age-adjusted incidence undefined'
             # font_path = '/fengjing/data_script/OCR_textrender/data/fonts/eng/Walkway_Oblique.ttf'
-            font_path = self.choose_font(language,font_dct)
+            # font_path = self.choose_font(language,font_dct)
+            # for i in range(10):
+            #     if '-' in word and 'Walkway' in font_path:
+            #         #print('.............')
+            #         font_path = self.choose_font(language, font_dct)
+            #     else:
+            #         break
+            font_path = self.choose_font(language, font_dct)
             for i in range(10):
                 if '-' in word and 'Walkway' in font_path:
-                    #print('.............')
+                    # print('.............')
                     font_path = self.choose_font(language, font_dct)
                 else:
                     break
-            font_path = '/fengjing/data_script/OCR_textrender/data/fonts/eng/calibri bold .ttf'
+            #font_path = '/fengjing/data_script/OCR_textrender/data/fonts/eng/calibri bold .ttf'
             if self.strict:
                 unsupport_chars = self.font_unsupport_chars[font_path]
                 for c in word:
