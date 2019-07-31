@@ -123,10 +123,10 @@ class EngCorpus(Corpus):
                         #print(word)
                         ok = False
                         break
-            if ok == True:
-                break
-            else:
-                continue
+                if ok == True:
+                    break
+                else:
+                    continue
 
 
         #language = self.corpus.language
