@@ -665,31 +665,30 @@ class Renderer(object):
         random_offset =0 # np.random.randint(-1,1)
 
         for index, t in enumerate(text):
-            if t == '^' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0:
-
-                            #判定上角标
+            if t == '^' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0: #判定上角标
                 draw.text((x, y+random_offset), text[index + 1], fill=text_color, font=font_little)
                 x += font_little.getsize(text[index + 1])[0]
-
                 word_height = max(word_height,font_little.getsize(text[index + 1])[1]-font_little.getoffset(text[index+1])[1])
-            elif t =='~' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0:
-            # elif t == '~' and ((ord(text[index + 1]) > 64 and ord(text[index + 1]) < 91) or (
-            #         ord(text[index + 1]) > 96 and ord(text[index + 1]) < 123) or (
-            #         ord(text[index + 1]) > 47 and ord(text[index + 1]) < 58)):
+            elif t =='~' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0: #判定下角标
                 draw.text((x, y + int(font_little.size)+random_offset+1), text[index + 1], fill=text_color, font=font_little)
-
                 x += font_little.getsize(text[index + 1])[0]
-
                 word_height = max(word_height,int(font_little.size)+1+font_little.getsize(text[index+1])[1])
+
             else:
                 if (text[index - 1] == '^' or text[index - 1] == '~') and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(t)) != 0:
                     continue
                 draw.text((x, y+random_offset), t, fill=text_color, font=font)
                 x += font.getsize(t)[0]
+                if t == '_':
+                    tmp_word_height = font.getsize(t)[1]-font.getoffset(t)[1]
+                    if tmp_word_height < word_height:
 
-                word_height = max(word_height,font.getsize(t)[1]-font.getoffset(t)[1])
-        #print(int(font.size),'word_height',word_height)
+                        word_height = max(word_height, font.getsize(t)[1])
+                    else:
+                        word_height = max(word_height, font.getsize(t)[1] - font.getoffset(t)[1])
 
+                else:
+                    word_height = max(word_height,font.getsize(t)[1]-font.getoffset(t)[1])
         return x-word_start,word_height
 
 
@@ -740,7 +739,7 @@ class Renderer(object):
             #print('img bg',bg.shape)
         else:
             bg = self.gen_rand_bg(int(width), int(height), lock)
-            print('random',bg.shape)
+            #print('random',bg.shape)
         return bg
 
     def gen_rand_bg(self, width, height, lock):
@@ -753,7 +752,7 @@ class Renderer(object):
         if r == 1:
             bg = np.array(BackgroundGenerator().quasicrystal(height, width))
             bg = self.apply_gauss_blur(bg, lock=lock)
-            print('1',bg.shape)
+            #print('1',bg.shape)
             return bg
         if r == 2:   
             bg_high = random.uniform(220, 255)
@@ -761,12 +760,12 @@ class Renderer(object):
             bg = np.random.randint(bg_low, bg_high, (height, width)).astype(np.uint8)
             #if random.randint(1,4) < 4:
             bg = self.apply_gauss_blur(bg, lock=lock)
-            print('2', bg.shape)
+            #print('2', bg.shape)
             return bg
         if r == 3:  
             bg = np.array(BackgroundGenerator().gaussian_noise(height, width))
             bg = self.apply_gauss_blur(bg, lock = lock)
-            print('3', bg.shape)
+            #print('3', bg.shape)
             return bg 
         if r >3 and r< 6:
             noise_index = np.random.randint(245,254)
@@ -776,7 +775,7 @@ class Renderer(object):
             # plt.show()
             #if random.randint(1,4) < 4:
             bg = self.apply_gauss_blur(bg, lock = lock)
-            print('4', bg.shape)
+            #print('4', bg.shape)
             return bg
            
 
@@ -836,31 +835,18 @@ class Renderer(object):
 
             #if word is None:
 
-
             if self.clip_max_chars and len(word) > self.max_chars:
                 word = word[:self.max_chars]
             font_dct = self.fonts
-            word = 'RPT/AMV/IRI/IPI001'
-            #font_dct = random.choice(self.fonts)
-            #different lang  should have different fonts
-            #print(font_dct)
-            # word = 't_he age-adjusted incidence undefined'
-            # font_path = '/fengjing/data_script/OCR_textrender/data/fonts/eng/Walkway_Oblique.ttf'
-            # font_path = self.choose_font(language,font_dct)
-            # for i in range(10):
-            #     if '-' in word and 'Walkway' in font_path:
-            #         #print('.............')
-            #         font_path = self.choose_font(language, font_dct)
-            #     else:
-            #         break
+
             font_path = self.choose_font(language, font_dct)
             for i in range(10):
-                if '-' in word and 'Walkway' in font_path:
+                if (('-' in word) or ('—' in word) or ('–' in word)) and 'Walkway' in font_path:
                     # print('.............')
                     font_path = self.choose_font(language, font_dct)
                 else:
                     break
-            #font_path = '/fengjing/data_script/OCR_textrender/data/fonts/eng/calibri bold .ttf'
+
             if self.strict:
                 unsupport_chars = self.font_unsupport_chars[font_path]
                 for c in word:
@@ -873,16 +859,13 @@ class Renderer(object):
 
             # Font size in point
             font_size = random.randint(self.cfg.font_size.min, self.cfg.font_size.max)
-            #print('font_path',font_path)
-            #if '-' in word :
+
 
             font = ImageFont.truetype(font_path, font_size)
             font_little_size= np.random.randint(font_size//2-1,font_size//2+1)
             font_little = ImageFont.truetype(font_path, font_little_size)
             return word, font, self.get_word_size(font, word),font_little
 
-
-            #return word, font, self.get_word_size(font, word)
         except Exception as e:
             print("Retry pick_font: %s" % str(e))
             traceback.print_exc()
