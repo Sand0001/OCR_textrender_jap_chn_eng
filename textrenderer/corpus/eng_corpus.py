@@ -32,8 +32,18 @@ class EngCorpus(Corpus):
         self.load_corpus_path()
         self.load_subscript()
         self.load_eng_chars()
+        filter_corpus_path = []
+
+        for i in self.corpus_path:
+
+            if 'eng' not in i.split('/')[-1]:
+                continue
+            else:
+                filter_corpus_path.append(i)
+        self.corpus_path = filter_corpus_path
 
         for i, p in enumerate(self.corpus_path):
+
             print("Load {} th eng corpus".format(i))
             with open(p, encoding='utf-8') as f:
                 data = f.read()
