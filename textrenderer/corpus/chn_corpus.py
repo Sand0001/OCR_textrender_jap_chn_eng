@@ -135,8 +135,16 @@ class ChnCorpus(Corpus):
         self.has_been_created_text = {}
         #记住这里多个corpus，这样的话，需要
         #self.eng_whitespace_pos_list_dct = {}
+        filter_corpus_path = []
 
+        for i in self.corpus_path:
+
+            if 'chn' in i.split('/')[-1] or 'eng' in i.split('/')[-1] :
+                filter_corpus_path.append(i)
+        self.corpus_path = filter_corpus_path
         for i, p in enumerate(self.corpus_path):
+
+
             print_end = '\n' if i == len(self.corpus_path) - 1 else '\r'
             print("Loading chn corpus: {}/{}".format(i + 1, len(self.corpus_path)), end=print_end)
             with open(p, encoding='utf-8') as f:
@@ -409,7 +417,7 @@ class ChnCorpus(Corpus):
             for i in range(0, self.length):
                 r_i = random.randint(0, len(self.single_words_list) - 1)
                 word += self.single_words_list[r_i]
-            if self.prob(1):   #0.3的概率随机组合角标
+            if self.prob(0.2):   #0.3的概率随机组合角标
                 subscript_index_list = np.random.randint(0, len(word), (np.random.randint(len(word) // 2)))
                 word = list(word)
                 for subscript_index in subscript_index_list:
