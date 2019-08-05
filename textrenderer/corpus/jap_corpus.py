@@ -116,7 +116,13 @@ class JAPCorpus(Corpus):
         self.load_subscript()
         self.load_corpus_path()
         #self.load_balanced_sample()
+        filter_corpus_path = []
 
+        for i in self.corpus_path:
+
+            if 'ja' in i.split('/')[-1] or 'eng' in i.split('/')[-1] :
+                filter_corpus_path.append(i)
+        self.corpus_path = filter_corpus_path
         for i, p in enumerate(self.corpus_path):
             print_end = '\n' if i == len(self.corpus_path) - 1 else '\r'
             print("Loading chn corpus: {}/{}".format(i + 1, len(self.corpus_path)), end=print_end)
