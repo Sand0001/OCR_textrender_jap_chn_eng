@@ -138,7 +138,7 @@ class ChnCorpus(Corpus):
         filter_corpus_path = []
 
         for i in self.corpus_path:
-
+            #if 'eng' in i.split('/')[-1]:
             if 'chn' in i.split('/')[-1] or 'eng' in i.split('/')[-1] :
                 filter_corpus_path.append(i)
         self.corpus_path = filter_corpus_path
@@ -412,27 +412,29 @@ class ChnCorpus(Corpus):
         #补充一下单字，特别是那种频次特别低的单字
         #r = random.randint(0, 30)
         #print (r, len(self.single_words_list))
-        if self.prob(0.02) and len(self.single_words_list) > 0:
+        if self.prob(0.0) and len(self.single_words_list) > 0:
             word = ''
             for i in range(0, self.length):
                 r_i = random.randint(0, len(self.single_words_list) - 1)
                 word += self.single_words_list[r_i]
-            if self.prob(0.2):   #0.3的概率随机组合角标
-                subscript_index_list = np.random.randint(0, len(word), (np.random.randint(len(word) // 2)))
-                word = list(word)
-                for subscript_index in subscript_index_list:
-
-                    word[subscript_index] = np.random.choice(self.subscript_list)
-                word = ''.join(word)
+            # if self.prob(1):   #0.3的概率随机组合角标
+            #     subscript_index_list = np.random.randint(0, len(word), (np.random.randint(len(word) // 2)))
+            #     word = list(word)
+            #     for subscript_index in subscript_index_list:
+            #
+            #         word[subscript_index] = np.random.choice(self.subscript_list)
+            #     word = ''.join(word)
             return word, 'chn'
 
         corpus = random.choice(self.corpus)
+
         #减少一些英文的比例
-        if corpus.language == 'eng' and  self.prob(0.2):
+        if corpus.language == 'eng' and  self.prob(0.3):
             corpus = random.choice(self.corpus)
 
         word = self.choose_line(corpus)
         language = corpus.language
+        print(language)
         if language == 'eng' and self.prob(0.02):
             #有一定的几率全大写
             word = word.upper()
@@ -443,7 +445,8 @@ class ChnCorpus(Corpus):
         #print (line[0:10], language)
         #word = line[start:start + length]
         #不能让文本的开始和结束有空格的出现
-        if self.prob(0.03):           #  有一定的几率将word中的字母随机替换成角标
+        if language == 'eng' and self.prob(0.03):
+                                                      #  有一定的几率将word中的字母随机替换成角标
             subscript_index_list = np.random.randint(0,len(word),(np.random.randint(len(word)//2)))
             word = list(word)
             for subscript_index in subscript_index_list:
