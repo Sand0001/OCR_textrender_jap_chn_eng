@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 
 class Renderer(object):
     def __init__(self, corpus, fonts, bgs, cfg, width=256, height=32,
-                 clip_max_chars=False, debug=False, gpu=False, strict=False):
+                 clip_max_chars=False, debug=False, gpu=False, strict=True):
         self.corpus = corpus
         self.fonts = fonts
         self.bgs = bgs
@@ -44,7 +44,7 @@ class Renderer(object):
         self.create_kernals()
 
         if self.strict:
-            #print (self.fonts)
+
             self.font_unsupport_chars = font_utils.get_unsupported_chars(self.fonts, corpus.chars_file)
 
 
@@ -105,7 +105,8 @@ class Renderer(object):
             print ("Word_Size :", word_size,' WORD:', word)
         #如果Wordsize特别小，乘以一个系数也是有问题的
         bg = self.gen_bg(width=word_size[0] + 280, height=word_size[1]  +  96, lock = lock)
-        if apply(self.cfg.add_script):
+        if ('^' in word) or ('~' in word):
+        #if apply(self.cfg.add_script):
             word_img, text_box_pnts, word_color = self.draw_add_script_text_on_bg(word, font, bg,font_little)
         else:
             word_img, text_box_pnts, word_color = self.draw_text_on_bg(word, font, bg)
@@ -559,11 +560,17 @@ class Renderer(object):
 
                 np_img = np.array(pil_img).astype(np.float32)
 
+        # text_box_pnts = [
+        #     [text_x, text_y],
+        #     [text_x + word_width, text_y],
+        #     [text_x + word_width, text_y + word_height],
+        #     [text_x, text_y + word_height]
+        # ]
         text_box_pnts = [
-            [text_x, text_y],
-            [text_x + word_width, text_y],
-            [text_x + word_width, text_y + word_height],
-            [text_x, text_y + word_height]
+            [text_x - offset[0], text_y - offset[1]],
+            [text_x - offset[0] + word_width, text_y - offset[1]],
+            [text_x - offset[0] + word_width, text_y - offset[1] + word_height],
+            [text_x - offset[0], text_y - offset[1] + word_height]
         ]
         #print('text_box_pnts_add_script',text_box_pnts)
         return np_img, text_box_pnts, word_color
@@ -669,6 +676,7 @@ class Renderer(object):
                 draw.text((x, y+random_offset), text[index + 1], fill=text_color, font=font_little)
                 x += font_little.getsize(text[index + 1])[0]
                 word_height = max(word_height,font_little.getsize(text[index + 1])[1]-font_little.getoffset(text[index+1])[1])
+                print('上标{}的x为{},y{}'.format(text[index+1],x,y))
             elif t =='~' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0: #判定下角标
                 draw.text((x, y + int(font_little.size)+random_offset+1), text[index + 1], fill=text_color, font=font_little)
                 x += font_little.getsize(text[index + 1])[0]
