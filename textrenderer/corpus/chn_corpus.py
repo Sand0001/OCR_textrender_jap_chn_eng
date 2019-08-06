@@ -176,7 +176,7 @@ class ChnCorpus(Corpus):
                     split_chars = [' ']
             
             splitchar = random.choice(split_chars)
-            whole_line = splitchar.join(lines)
+            whole_line = ' '.join(lines)
             '''
             total_len = 0    
             for line in lines:
@@ -190,7 +190,7 @@ class ChnCorpus(Corpus):
             self.probability = [len(l) / float(total_len) for l in self.corpus]
             '''
             # 在 crnn/libs/label_converter 中 encode 时还会进行过滤
-            whole_line = ''.join(filter(lambda x: x in self.charsets, whole_line))
+            #whole_line = ''.join(filter(lambda x: x in self.charsets, whole_line))
             #print (whole_line[0 : 500])
             if len(whole_line) > self.length:
                 #计算Corpus语言
@@ -427,14 +427,14 @@ class ChnCorpus(Corpus):
             return word, 'chn'
 
         corpus = random.choice(self.corpus)
-
+        #print(corpus.content)
+        #corpus = self.corpus[1]
         #减少一些英文的比例
-        if corpus.language == 'eng' and  self.prob(0.3):
+        if corpus.language == 'eng' and  self.prob(0.2):
             corpus = random.choice(self.corpus)
 
         word = self.choose_line(corpus)
         language = corpus.language
-        print(language)
         if language == 'eng' and self.prob(0.02):
             #有一定的几率全大写
             word = word.upper()
