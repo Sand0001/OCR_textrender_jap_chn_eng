@@ -104,8 +104,9 @@ class Renderer(object):
         if self.show:
             print ("Word_Size :", word_size,' WORD:', word)
         #如果Wordsize特别小，乘以一个系数也是有问题的
+
         bg = self.gen_bg(width=word_size[0] + 280, height=word_size[1]  +  96, lock = lock)
-        if ('^' in word) or ('~' in word):
+        if ('　' in word) or (' ' in word):
         #if apply(self.cfg.add_script):
             word_img, text_box_pnts, word_color = self.draw_add_script_text_on_bg(word, font, bg,font_little)
         else:
@@ -672,18 +673,17 @@ class Renderer(object):
         random_offset =0 # np.random.randint(-1,1)
 
         for index, t in enumerate(text):
-            if t == '^' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0: #判定上角标
+            if t == '　' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0: #判定上角标
                 draw.text((x, y+random_offset), text[index + 1], fill=text_color, font=font_little)
                 x += font_little.getsize(text[index + 1])[0]
                 word_height = max(word_height,font_little.getsize(text[index + 1])[1]-font_little.getoffset(text[index+1])[1])
-                print('上标{}的x为{},y{}'.format(text[index+1],x,y))
-            elif t =='~' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0: #判定下角标
+            elif t ==' ' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0: #判定下角标
                 draw.text((x, y + int(font_little.size)+random_offset+1), text[index + 1], fill=text_color, font=font_little)
                 x += font_little.getsize(text[index + 1])[0]
                 word_height = max(word_height,int(font_little.size)+1+font_little.getsize(text[index+1])[1])
 
             else:
-                if (text[index - 1] == '^' or text[index - 1] == '~') and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(t)) != 0:
+                if (text[index - 1] == '　' or text[index - 1] == ' ') and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(t)) != 0:
                     continue
                 draw.text((x, y+random_offset), t, fill=text_color, font=font)
                 x += font.getsize(t)[0]
@@ -849,16 +849,16 @@ class Renderer(object):
 
             font_path = self.choose_font(language, font_dct)
             for i in range(10):
-                if (('-' in word) or ('—' in word) or ('–' in word)) and 'Walkway' in font_path:
+                if ('-' or'—' or '–' or '=' in word) and ('walkway' or 'raleway' or 'Courier' in font_path.lower()) :
                     # print('.............')
                     font_path = self.choose_font(language, font_dct)
                 else:
                     break
-
+            #if '　' not in word:
             if self.strict:
                 unsupport_chars = self.font_unsupport_chars[font_path]
                 for c in word:
-                    if c == ' ':
+                    if c == ' ' or c == '　' or c ==' ':
                         continue
                     if c in unsupport_chars:
                         print('Retry pick_font(), \'%s\' contains chars \'%s\' not supported by font %s' % (
@@ -867,7 +867,6 @@ class Renderer(object):
 
             # Font size in point
             font_size = random.randint(self.cfg.font_size.min, self.cfg.font_size.max)
-
 
             font = ImageFont.truetype(font_path, font_size)
             font_little_size= np.random.randint(font_size//2-1,font_size//2+1)
