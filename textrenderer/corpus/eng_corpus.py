@@ -71,7 +71,14 @@ class EngCorpus(Corpus):
                 continue
             self.subscript_list.append(parts[0])
         print("Load subscripts List : ", len(self.subscript_list))
-
+    def load_balanced_sample(self):
+        self.single_words_list = []
+        for line in open("./data/corpus/eng_single_word.dat"):
+            parts = line.strip('\r\n ').split(' ')
+            if parts[0] not in self.charsets:
+                continue
+            self.single_words_list.append(parts[0])
+        print ("Load Single Word List : ", len(self.single_words_list))
     def load_charset_level(self):
         self.low_charset_level = set()
         self.mid_charset_level = set()
@@ -117,8 +124,7 @@ class EngCorpus(Corpus):
         """
         self.load_corpus_path()
         #self.load_charset_level()
-        #self.load_balanced_sample()
-
+        self.load_balanced_sample()
         self.load_subscript()
         self.has_been_created_text = {}
         # 记住这里多个corpus，这样的话，需要
@@ -398,7 +404,12 @@ class EngCorpus(Corpus):
         # 补充一下单字，特别是那种频次特别低的单字
         # r = random.randint(0, 30)
         # print (r, len(self.single_words_list))
-
+        if len(self.single_words_list) > 0 and self.prob(0.02):
+            word = ''
+            for i in range(0, self.length):
+                r_i = random.randint(0, len(self.single_words_list) - 1)
+                word += self.single_words_list[r_i]
+            return word,'eng'
 
         corpus = random.choice(self.corpus)
         # print(corpus.content)
@@ -416,7 +427,7 @@ class EngCorpus(Corpus):
         # print (line[0:10], language)
         # word = line[start:start + length]
         # 不能让文本的开始和结束有空格的出现
-        if language == 'eng' and self.prob(0.02):
+        if language == 'eng' and self.prob(0.08):
             #  有一定的几率将word中的字母随机替换成角标
             subscript_index_list = np.random.randint(0, len(word), (np.random.randint(len(word) // 2)))
             word = list(word)
