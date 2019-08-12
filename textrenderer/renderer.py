@@ -499,7 +499,10 @@ class Renderer(object):
                 # draw.text((text_x - offset[0], text_y - offset[1]), word, fill=word_color, font=font)
 
                 np_img = np.array(pil_img).astype(np.float32)
-
+        if word[-1] == '。' or word[-1] == '、':
+            tmp_offset = np.random.randint(0,font.size//3*2)
+            word_width = word_width-tmp_offset
+            #print(tmp_offset)
         text_box_pnts = [
             [text_x, text_y],
             [text_x + word_width, text_y],

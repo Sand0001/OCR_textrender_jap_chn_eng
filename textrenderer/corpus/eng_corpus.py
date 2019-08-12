@@ -30,7 +30,7 @@ class EngCorpus(Corpus):
 
     def iseng(self, line):
         # 数据很大，就一行，只看前10个
-        line = line[0:10]
+        line = line[0:30]
         alpha_num = 0
         for c in line:
             if c <= 'z' and c >= 'a' or c >= 'A' and c <= 'Z':
@@ -424,6 +424,7 @@ class EngCorpus(Corpus):
 
         word = self.choose_line(corpus)
         language = corpus.language
+        print(language)
         if language == 'eng' and self.prob(0.02):
             # 有一定的几率全大写
             word = word.upper()
