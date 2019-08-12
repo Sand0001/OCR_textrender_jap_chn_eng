@@ -304,15 +304,12 @@ class ChnCorpus(Corpus):
         #print (r, len(self.single_words_list))
         #if False and len(self.single_words_list) > 0 and self.prob(0.02):
 
-        if len(self.single_words_list) > 0 and self.prob(1):
+        if len(self.single_words_list) > 0 and self.prob(0.02):
             word = ''
             for i in range(0, self.length):
                 r_i = random.randint(0, len(self.single_words_list) - 1)   
                 word += self.single_words_list[r_i]
-            if self.prob(0.3):
-                subscript_index_list = np.random.randint(0, len(word), (np.random.randint(len(word) // 2)))
-                for subscript_index in subscript_index_list:
-                    word = word.replace(word[subscript_index], np.random.choice(self.subscript_list))
+
             #如果已经出现过了，那么Continue掉
             if word in self.has_been_created_text:
                 #print ("Abandon has_been_created_text word : ", word)
@@ -393,10 +390,10 @@ class ChnCorpus(Corpus):
                 word = word.upper()
 
 
-        if self.prob(1):
-            subscript_index_list = np.random.randint(0,len(word),(np.random.randint(len(word)//2)))
-            for subscript_index in subscript_index_list:
-                word =word.replace(word[subscript_index],np.random.choice(self.subscript_list))
+        # if self.prob(1):
+        #     subscript_index_list = np.random.randint(0,len(word),(np.random.randint(len(word)//2)))
+        #     for subscript_index in subscript_index_list:
+        #         word =word.replace(word[subscript_index],np.random.choice(self.subscript_list))
 
 
             #有一定的几率首字母大写 TODO 
@@ -412,7 +409,7 @@ class ChnCorpus(Corpus):
         #补充一下单字，特别是那种频次特别低的单字
         #r = random.randint(0, 30)
         #print (r, len(self.single_words_list))
-        if self.prob(0.0) and len(self.single_words_list) > 0:
+        if self.prob(0.02) and len(self.single_words_list) > 0:
             word = ''
             for i in range(0, self.length):
                 r_i = random.randint(0, len(self.single_words_list) - 1)
@@ -426,12 +423,35 @@ class ChnCorpus(Corpus):
             #     word = ''.join(word)
             return word, 'chn'
 
+
         corpus = random.choice(self.corpus)
         #print(corpus.content)
         #corpus = self.corpus[1]
         #减少一些英文的比例
+
         if corpus.language == 'eng' and  self.prob(0.2):
             corpus = random.choice(self.corpus)
+        if False and corpus.language == 'chn' and len(corpus.low_charset_level_list) > 0 and self.prob(0.25):
+            line = corpus.content
+            r_i = random.randint(0, len(corpus.low_charset_level_list) - 1)
+            index_list = corpus.low_char_index_dct[ corpus.low_charset_level_list[r_i]]
+            #print ("Low Word Index_List", index_list)
+            r_list_i = index_list[random.randint(0, len(index_list) - 1)]
+            #还是固定一下位置吧，这样好做去重，否则的话，会出现一大堆只差一个字的奇奇怪怪的东西
+            #r_start = random.randint(r_list_i - self.length + 1, r_list_i)
+            r_start = r_list_i - 3
+            #print ("Low Word Start : ", r_start)
+            if r_start >= 0 and r_start + self.length < len(line):
+                word = self.get_content_of_len_from_pos(line, 2 * self.length, r_start)
+                #word = line [r_start : r_start + self.length]
+                print ("Choose Low Word : ", corpus.low_charset_level_list[r_i], " Choose : ", word)
+                if word in self.has_been_created_text:
+                    print ("Abandon has_been_created_text word : ", word)
+                    #return None
+                self.has_been_created_text[word] = 1
+                return word, corpus.language
+            else:
+                return None
 
         word = self.choose_line(corpus)
         language = corpus.language
@@ -445,7 +465,7 @@ class ChnCorpus(Corpus):
         #print (line[0:10], language)
         #word = line[start:start + length]
         #不能让文本的开始和结束有空格的出现
-        if language == 'eng' and self.prob(0.02):
+        if language == 'eng' and self.prob(0.04):
                                                       #  有一定的几率将word中的字母随机替换成角标
             subscript_index_list = np.random.randint(0,len(word),(np.random.randint(len(word)//2)))
             word = list(word)
@@ -454,5 +474,11 @@ class ChnCorpus(Corpus):
                 word[subscript_index] = np.random.choice(self.subscript_list)
             word = ''.join(word)
         #print('word',word)
+
+        #有一定的几率在句末添加全角句号和顿号
+        if corpus.language == 'chn' and self.prob(0.005) and self.ischinese(word[-1]) :
+
+            tmp_word_1= random.choice(['。','、'])
+            word = word.strip(' ')+tmp_word_1
         return word.strip(' '), language
 
