@@ -499,9 +499,22 @@ class Renderer(object):
                 # draw.text((text_x - offset[0], text_y - offset[1]), word, fill=word_color, font=font)
 
                 np_img = np.array(pil_img).astype(np.float32)
-        if word[-1] == '。' or word[-1] == '、':
-            tmp_offset = np.random.randint(0,font.size//3*2)
-            word_width = word_width-tmp_offset
+        str_list_left = '｟〈【〔「'
+
+        str_list_right = '｠！？〉〕】」‘’：“”】。、'
+        if word[-1] in str_list_right:
+        #if word[-1] == '。' or word[-1] == '、':
+            tmp_right_offset = np.random.randint(font.size//3,font.size//3*2)
+            word_width = word_width-tmp_right_offset
+        elif word[-1] ==']':
+        #if word[-1] == '。' or word[-1] == '、':
+            tmp_right_offset = np.random.randint(0,font.size//3)
+            word_width = word_width-tmp_right_offset
+        if word[0] in str_list_left:
+            tmp_left_offset = np.random.randint(font.size // 3, font.size // 3 * 2)
+            text_x = text_x+tmp_left_offset
+
+
             #print(tmp_offset)
         text_box_pnts = [
             [text_x, text_y],
@@ -807,7 +820,7 @@ class Renderer(object):
 
         out = out[y_offset:y_offset + height, x_offset:x_offset + width]
         #有33%的几率不做模糊处理
-        if random.randint(0, 2) > 0:
+        if random.randint(0, 1) > 0:
             out = self.apply_gauss_blur(out, ks=[3, 5, 7, 9, 11, 13, 15, 17], lock = lock)
         #out = self.apply_gauss_blur(out, ks = 1)
         bg_mean = int(np.mean(out))
@@ -852,7 +865,7 @@ class Renderer(object):
 
             font_path = self.choose_font(language, font_dct)
             for i in range(10):
-                if ('-' or'—' or '–' or '=' in word) and ('walkway' or 'raleway' or 'Courier' in font_path.lower()) :
+                if ('-' or'—' or '–' or '=' in word) and ('walkway' or 'raleway' or 'courier' in font_path.lower()) :
                     # print('.............')
                     font_path = self.choose_font(language, font_dct)
                 else:
