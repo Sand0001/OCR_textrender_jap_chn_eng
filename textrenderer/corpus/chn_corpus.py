@@ -476,9 +476,20 @@ class ChnCorpus(Corpus):
         #print('word',word)
 
         #有一定的几率在句末添加全角句号和顿号
-        if corpus.language == 'chn' and self.prob(0.005) and self.ischinese(word[-1]) :
+        if corpus.language == 'chn' and self.prob(0.006) and self.ischinese(word[-1]) :
 
-            tmp_word_1= random.choice(['。','、'])
-            word = word.strip(' ')+tmp_word_1
+            str_list_right = '》！？〉】〕」’：”】]。、'
+            prob = [0.1,0.08,0.08,0.04,0.04,0.02,0.01,0.02,0.08,0.03,0.12,0.12,0.14,0.12]
+            tmp_word_1 = np.random.choice(list(str_list_right),1,p=prob)
+
+            #tmp_word_1= random.choice(list(str_list_right))
+            word = word.strip(' ')+tmp_word_1[0]
+        if corpus.language == 'chn' and self.prob(0.005) and self.ischinese(word[0]) :
+            str_list_left = '《〈【〔「‘“'
+            prob = [0.22,0.1,0.1,0.15,0.05,0.13,0.25]
+            #str_list_right = '｠！？〉】〕」‘’：“”】]。、'
+            tmp_word_1 = np.random.choice(list(str_list_left),1,p=prob)
+            #tmp_word_1= random.choice(list(str_list_left))
+            word = tmp_word_1[0] + word.strip(' ')
         return word.strip(' '), language
 
