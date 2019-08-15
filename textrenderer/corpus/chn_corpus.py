@@ -32,7 +32,7 @@ class ChnCorpus(Corpus):
 
     def iseng(self, line):
         #数据很大，就一行，只看前10个
-        line = line[0:10]
+        line = line[0:30]
         alpha_num = 0
         for c in line:
             if c <= 'z' and c >= 'a' or c >= 'A'  and c <= 'Z':

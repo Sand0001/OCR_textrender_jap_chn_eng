@@ -1,13 +1,13 @@
 #coding=utf8
 import os
 import sys
-
+import re
 dct = {}
 
 dup_cnt = 0
 word_dct = {}
 char_dct = {}
-for line in open('data/chars/chn.txt'):
+for line in open('data/chars/eng.txt'):
 	chars = line.strip('\r\n ')
 	char_dct [chars] = 1
 
@@ -18,7 +18,16 @@ for line in open(sys.argv[1]):
 		continue
 	idx = line.index(' ')
 	label = line[idx + 1 : ]
-	for part in line:
+	#for part in line:# if (t == '^'or t == '~') and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0
+	for index ,part in enumerate(line):
+		if (part == '^'or part == '~') and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(line[index + 1])) !=0: 
+			part = part+line[index + 1]
+			print(part)
+		elif (line[index-1] == '^' or line[index-1] == '~') and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(part)) != 0:
+			continue
+		else:
+			part = part
+ 
 		if part not in char_dct:
 			continue
 		if part in word_dct:
@@ -67,7 +76,7 @@ final_prob_list = [freq / total_freq for freq in final_freq_list]
 import numpy as np
 with open("cc", "w") as f:
 	#for i in range(0, 100000):
-	sample_all = np.random.choice(a=final_word_list, size=500000, replace=True, p=final_prob_list)
+	sample_all = np.random.choice(a=final_word_list, size=100000, replace=True, p=final_prob_list)
 	for sample in sample_all:
 		f.write(sample + '\n')
 
