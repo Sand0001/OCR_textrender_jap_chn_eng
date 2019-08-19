@@ -7,7 +7,7 @@ dct = {}
 dup_cnt = 0
 word_dct = {}
 char_dct = {}
-for line in open('data/chars/eng.txt'):
+for line in open('data/chars/chn.txt'):
 	chars = line.strip('\r\n ')
 	char_dct [chars] = 1
 
@@ -20,10 +20,10 @@ for line in open(sys.argv[1]):
 	label = line[idx + 1 : ]
 	#for part in line:# if (t == '^'or t == '~') and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0
 	for index ,part in enumerate(line):
-		if (part == '^'or part == '~') and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(line[index + 1])) !=0: 
+		if (part == '　'or part == ' ') and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(line[index + 1])) !=0: 
 			part = part+line[index + 1]
 			print(part)
-		elif (line[index-1] == '^' or line[index-1] == '~') and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(part)) != 0:
+		elif (line[index-1] == '　' or line[index-1] == ' ') and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(part)) != 0:
 			continue
 		else:
 			part = part
@@ -39,7 +39,7 @@ for line in open(sys.argv[1]):
 for char in char_dct:
     if char not in word_dct:
         word_dct[char] = 1
-
+        print(char)
 
 
 balance_word_list = []
