@@ -91,7 +91,7 @@ class Renderer(object):
         t = self.start()
         lock = None
 
-        word, font, word_size,font_little = self.pick_font(img_index)
+        word, font, word_size,font_little,language = self.pick_font(img_index)
         #word = 't_he age-adjusted incidence undefined'
 
         self.end(t, "pick_font")
@@ -110,7 +110,7 @@ class Renderer(object):
         #if apply(self.cfg.add_script):
             word_img, text_box_pnts, word_color = self.draw_add_script_text_on_bg(word, font, bg,font_little)
         else:
-            word_img, text_box_pnts, word_color = self.draw_text_on_bg(word, font, bg)
+            word_img, text_box_pnts, word_color = self.draw_text_on_bg(word, font, bg,language)
         if self.show:
             print ("BG SHAPE : ", bg.shape)
             print ("Word Image : ", word_img.shape)
@@ -450,7 +450,7 @@ class Renderer(object):
         #print ("bg_mean : ", bg_mean, " np.mean(word_roi_bg) : ", np.mean(word_roi_bg), "word_color : ", word_color)
         return word_color
 
-    def draw_text_on_bg(self, word, font, bg):
+    def draw_text_on_bg(self, word, font, bg,language):
         """
         Draw word in the center of background
         :param word: word to draw
@@ -499,20 +499,33 @@ class Renderer(object):
                 # draw.text((text_x - offset[0], text_y - offset[1]), word, fill=word_color, font=font)
 
                 np_img = np.array(pil_img).astype(np.float32)
-        str_list_left = '｟〈【〔「'
+        if language == 'chn':
+            str_list_left = '《〈【〔「‘“'
 
-        str_list_right = '｠！？〉〕】」‘’：“”】。、'
-        if word[-1] in str_list_right:
-        #if word[-1] == '。' or word[-1] == '、':
-            tmp_right_offset = np.random.randint(font.size//3,font.size//3*2)
-            word_width = word_width-tmp_right_offset
-        elif word[-1] ==']':
-        #if word[-1] == '。' or word[-1] == '、':
-            tmp_right_offset = np.random.randint(0,font.size//3)
-            word_width = word_width-tmp_right_offset
-        if word[0] in str_list_left:
-            tmp_left_offset = np.random.randint(font.size // 3, font.size // 3 * 2)
-            text_x = text_x+tmp_left_offset
+            str_list_right = '》！？〉】〕」’：”】]。、'
+            if word[-1] in str_list_right:
+            #if word[-1] == '。' or word[-1] == '、':
+                tmp_right_offset = np.random.randint(font.size//3,font.size//3*2)
+                word_width = word_width-tmp_right_offset
+
+            if word[0] in str_list_left:
+                tmp_left_offset = np.random.randint(font.size // 3, font.size // 3*2)
+                text_x = text_x+tmp_left_offset
+        elif language == 'jap':
+            str_list_left = '「【《〈〔'
+
+            str_list_right = '】」。、〕》〉'
+            if word[-1] in str_list_right:
+                # if word[-1] == '。' or word[-1] == '、':
+                tmp_right_offset = np.random.randint(font.size // 3, font.size // 3*2)
+                word_width = word_width - tmp_right_offset
+
+            if word[0] in str_list_left:
+                tmp_left_offset = np.random.randint(font.size // 3, font.size // 2)
+                text_x = text_x + tmp_left_offset
+
+
+
 
 
             #print(tmp_offset)
@@ -792,8 +805,8 @@ class Renderer(object):
             #print('3', bg.shape)
             return bg 
         if r >3 and r< 6:
-            noise_index = np.random.randint(245,254)
-            bg = np.random.randint(noise_index, 255, (height, width)).astype(np.uint8)
+            #noise_index = np.random.randint(225,254)
+            bg = np.random.randint(220, 255, (height, width)).astype(np.uint8)
             # plt.figure('1')
             # plt.imshow(bg)
             # plt.show()
@@ -858,7 +871,8 @@ class Renderer(object):
 
 
             #if word is None:
-
+            #word = '有粘性物质（O~1，0E-'
+            #language = 'chn'
             if self.clip_max_chars and len(word) > self.max_chars:
                 word = word[:self.max_chars]
             font_dct = self.fonts
@@ -887,7 +901,7 @@ class Renderer(object):
             font = ImageFont.truetype(font_path, font_size)
             font_little_size= np.random.randint(font_size//2-1,font_size//2+1)
             font_little = ImageFont.truetype(font_path, font_little_size)
-            return word, font, self.get_word_size(font, word),font_little
+            return word, font, self.get_word_size(font, word),font_little,language
 
         except Exception as e:
             print("Retry pick_font: %s" % str(e))
