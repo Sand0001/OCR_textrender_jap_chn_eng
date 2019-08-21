@@ -315,7 +315,7 @@ class JAPCorpus(Corpus):
 
                 word[subscript_index] = np.random.choice(self.subscript_list)
             word = ''.join(word)
-        if corpus.language == 'jap' and self.prob(1) and self.ischinese(word[-1]) :
+        if corpus.language == 'jap' and self.prob(0.006) and self.ischinese(word[-1]) :
 
             str_list_right = '】」。、〕》〉'
             prob = [0.001433581650154878, 0.0036351534700355837, 0.9386887847835548, 0.00325115838517267, 0.040652279650820466, 0.001740777718045209, 0.01059826434221642]
@@ -323,7 +323,7 @@ class JAPCorpus(Corpus):
 
             #tmp_word_1= random.choice(list(str_list_right))
             word = word.strip(' ')+tmp_word_1[0]
-        if corpus.language == 'jap' and self.prob(1) and self.ischinese(word[0]) :
+        if corpus.language == 'jap' and self.prob(0.005) and self.ischinese(word[0]) :
             str_list_left = '「【《〈〔'
             prob = [0.11397058823529412, 0.025735294117647058, 0.265625, 0.07261029411764706, 0.5220588235294118]
             #str_list_right = '｠！？〉】〕」‘’：“”】]。、'
