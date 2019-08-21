@@ -160,7 +160,8 @@ class JAPCorpus(Corpus):
             self.probability = [len(l) / float(total_len) for l in self.corpus]
             '''
             # 在 crnn/libs/label_converter 中 encode 时还会进行过滤
-            whole_line = ''.join(filter(lambda x: x in self.chars, whole_line))
+            whole_line = ''.join([i for i in whole_line if i in self.chars])
+            #whole_line = ''.join(filter(lambda x: x in self.chars, whole_line))
 
             
             if len(whole_line) > self.length:
