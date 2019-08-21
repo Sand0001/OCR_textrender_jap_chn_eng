@@ -40,7 +40,7 @@ class JAPCorpus(Corpus):
 
     def iseng(self, line):
         #数据很大，就一行，只看前10个
-        line = line[0:10]
+        line = line[0:30]
         alpha_num = 0
         for c in line:
             if c <= 'z' and c >= 'a' or c >= 'A'  and c <= 'Z':
@@ -161,6 +161,7 @@ class JAPCorpus(Corpus):
             '''
             # 在 crnn/libs/label_converter 中 encode 时还会进行过滤
             whole_line = ''.join(filter(lambda x: x in self.chars, whole_line))
+
             
             if len(whole_line) > self.length:
                 #self.corpus.append(whole_line)
@@ -281,12 +282,12 @@ class JAPCorpus(Corpus):
             for i in range(0, self.length):
                 r_i = random.randint(0, len(self.single_words_list) - 1)
                 word += self.single_words_list[r_i]
-            if self.prob(1):   #0.3的概率随机组合角标
-                subscript_index_list = np.random.randint(0, len(word), (np.random.randint(len(word) // 2)))
-                for subscript_index in subscript_index_list:
-                    word = list(word)
-                    word[subscript_index] = np.random.choice(self.subscript_list)
-                    word = ''.join(word)
+            # if self.prob(1):   #0.3的概率随机组合角标
+            #     subscript_index_list = np.random.randint(0, len(word), (np.random.randint(len(word) // 2)))
+            #     for subscript_index in subscript_index_list:
+            #         word = list(word)
+            #         word[subscript_index] = np.random.choice(self.subscript_list)
+            #         word = ''.join(word)
             return word, 'jap'
 
         corpus = random.choice(self.corpus)
@@ -306,11 +307,28 @@ class JAPCorpus(Corpus):
         #print (line[0:10], language)
         #word = line[start:start + length]
         #不能让文本的开始和结束有空格的出现
-        if self.prob(1):           #  有一定的几率将word中的字母随机替换成角标
+        if language == 'eng' and self.prob(0.04):
+                                                      #  有一定的几率将word中的字母随机替换成角标
             subscript_index_list = np.random.randint(0,len(word),(np.random.randint(len(word)//2)))
+            word = list(word)
             for subscript_index in subscript_index_list:
-                word = list(word)
+
                 word[subscript_index] = np.random.choice(self.subscript_list)
-                word = ''.join(word)
-        print('word',word)
+            word = ''.join(word)
+        if corpus.language == 'jap' and self.prob(1) and self.ischinese(word[-1]) :
+
+            str_list_right = '】」。、〕》〉'
+            prob = [0.001433581650154878, 0.0036351534700355837, 0.9386887847835548, 0.00325115838517267, 0.040652279650820466, 0.001740777718045209, 0.01059826434221642]
+            tmp_word_1 = np.random.choice(list(str_list_right),1,p=prob)
+
+            #tmp_word_1= random.choice(list(str_list_right))
+            word = word.strip(' ')+tmp_word_1[0]
+        if corpus.language == 'jap' and self.prob(1) and self.ischinese(word[0]) :
+            str_list_left = '「【《〈〔'
+            prob = [0.11397058823529412, 0.025735294117647058, 0.265625, 0.07261029411764706, 0.5220588235294118]
+            #str_list_right = '｠！？〉】〕」‘’：“”】]。、'
+            tmp_word_1 = np.random.choice(list(str_list_left),1,p=prob)
+            #tmp_word_1= random.choice(list(str_list_left))
+            word = tmp_word_1[0] + word.strip(' ')
+        #print('word',word)
         return word.strip(' '), language
