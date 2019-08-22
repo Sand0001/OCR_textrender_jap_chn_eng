@@ -106,7 +106,7 @@ class Renderer(object):
         #如果Wordsize特别小，乘以一个系数也是有问题的
 
         bg = self.gen_bg(width=word_size[0] + 280, height=word_size[1]  +  96, lock = lock)
-        if ('　' in word) or (' ' in word):
+        if ('▵' in word) or ('▿' in word):
         #if apply(self.cfg.add_script):
             word_img, text_box_pnts, word_color = self.draw_add_script_text_on_bg(word, font, bg,font_little)
         else:
@@ -702,20 +702,22 @@ class Renderer(object):
         random_offset =0 # np.random.randint(-1,1)
 
         for index, t in enumerate(text):
-            if t == '　' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0: #判定上角标
+            if t == '▵' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0: #判定上角标
                 draw.text((x, y+random_offset), text[index + 1], fill=text_color, font=font_little)
                 x += font_little.getsize(text[index + 1])[0]
                 word_height = max(word_height,font_little.getsize(text[index + 1])[1]-font_little.getoffset(text[index+1])[1])
-            elif t ==' ' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0: #判定下角标
+            elif t =='▿' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0: #判定下角标
                 draw.text((x, y + int(font_little.size)+random_offset+1), text[index + 1], fill=text_color, font=font_little)
                 x += font_little.getsize(text[index + 1])[0]
                 word_height = max(word_height,int(font_little.size)+1+font_little.getsize(text[index+1])[1])
 
             else:
-                if (text[index - 1] == '　' or text[index - 1] == ' ') and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(t)) != 0:
+                if (text[index - 1] == '▵' or text[index - 1] == '▿') and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(t)) != 0:
                     continue
                 draw.text((x, y+random_offset), t, fill=text_color, font=font)
+                #mask, offset = font.getmask2(t, draw.mode)
                 x += font.getsize(t)[0]
+                #x += offset[0]
                 if t == '_':
                     tmp_word_height = font.getsize(t)[1]-font.getoffset(t)[1]
                     if tmp_word_height < word_height:
@@ -725,7 +727,7 @@ class Renderer(object):
                         word_height = max(word_height, font.getsize(t)[1] - font.getoffset(t)[1])
 
                 else:
-                    word_height = max(word_height,font.getsize(t)[1]-font.getoffset(t)[1])
+                    word_height = max(word_height,font.getsize(t)[1])
         return x-word_start,word_height
 
 
@@ -836,7 +838,7 @@ class Renderer(object):
         if random.randint(0, 1) > 0:
             out = self.apply_gauss_blur(out, ks=[3, 5, 7, 9, 11, 13, 15, 17], lock = lock)
         #out = self.apply_gauss_blur(out, ks = 1)
-        bg_mean = int(np.mean(out))
+        #bg_mean = int(np.mean(out))
 
         # TODO: find a better way to deal with background
         # alpha = 255 / bg_mean  # 对比度
@@ -869,7 +871,7 @@ class Renderer(object):
             else:
                 word, language = self.corpus.get_sample(img_index)
 
-
+            #word = '[+/- 　RD] KpH, 7.01 +　2'
             #if word is None:
             #word = '有粘性物质（O~1，0E-'
             #language = 'chn'
@@ -888,7 +890,7 @@ class Renderer(object):
             if self.strict:
                 unsupport_chars = self.font_unsupport_chars[font_path]
                 for c in word:
-                    if c == ' ' or c == '　' or c ==' ':
+                    if c == ' ' or c == '▵' or c =='▿':
                         continue
                     if c in unsupport_chars:
                         print('Retry pick_font(), \'%s\' contains chars \'%s\' not supported by font %s' % (
