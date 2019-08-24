@@ -96,15 +96,22 @@ class JAPCorpus(Corpus):
             self.single_words_list.append(parts[0])
         print ("Load Single Word List : ", len(self.single_words_list))
     def load_subscript(self):
-        self.subscript_list = []
+        self.up_subscript_list = []
+        self.down_subscript_list = []
         for line in open('./data/corpus/suscripts.dat'):
-            parts = line.strip('\r\n ').split(' ')
-            if parts[0] not in self.charsets:
-                print(parts[0])
+            parts = line.strip('\r\n ').split(' ')[0]
+            # print(parts)
+            if parts not in self.charsets:
                 continue
-            self.subscript_list.append(parts[0])
+            if '▵' in parts:
+                self.up_subscript_list.append(parts)
+            elif '▿' in parts:
+                self.down_subscript_list.append(parts)
 
-        print("Load subscripts List : ", len(self.subscript_list))
+        # print(self.subscript_list)
+        print("Load up_subscripts List : ", len(self.up_subscript_list))
+        print("Load down_subscripts List : ", len(self.down_subscript_list))
+
 
     def load(self):
         """
@@ -160,8 +167,8 @@ class JAPCorpus(Corpus):
             self.probability = [len(l) / float(total_len) for l in self.corpus]
             '''
             # 在 crnn/libs/label_converter 中 encode 时还会进行过滤
-            whole_line = ''.join([i for i in whole_line if i in self.chars])
-            #whole_line = ''.join(filter(lambda x: x in self.chars, whole_line))
+            #whole_line = ''.join([i for i in whole_line if i in self.chars])
+            whole_line = ''.join(filter(lambda x: x in self.chars, whole_line))
 
             
             if len(whole_line) > self.length:
@@ -308,14 +315,33 @@ class JAPCorpus(Corpus):
         #print (line[0:10], language)
         #word = line[start:start + length]
         #不能让文本的开始和结束有空格的出现
-        if language == 'eng' and self.prob(0.04):
-                                                      #  有一定的几率将word中的字母随机替换成角标
-            subscript_index_list = np.random.randint(0,len(word),(np.random.randint(len(word)//2)))
-            word = list(word)
-            for subscript_index in subscript_index_list:
+        if language == 'eng' and self.prob(0.15):
+            print(language)
+            #  有一定的几率将word中的字母随机替换成角标
 
-                word[subscript_index] = np.random.choice(self.subscript_list)
-            word = ''.join(word)
+            word_lsit = list(word)
+            subscript_index_list = []
+            for i in range(np.random.randint(3 )):
+                tmp_i = np.random.randint(0,len(word_lsit))
+                if tmp_i not in subscript_index_list:
+                    subscript_index_list.append(tmp_i)
+
+
+
+            #subscript_index_list = np.random.randint(0, len(word_lsit), (np.random.randint(len(word_lsit) )))
+            #word = list(word)
+
+            #print(add_scripts)
+            for subscript_index in subscript_index_list:
+                num = np.random.randint(1, 3)
+                scripts = random.choice([self.down_subscript_list, self.up_subscript_list])
+                add_scripts = ''
+
+                for i in range(num):
+                    add_scripts += np.random.choice(scripts)
+                if word_lsit[subscript_index]!= ' ':
+                    word_lsit[subscript_index] = word_lsit[subscript_index] + add_scripts
+            word = ''.join(word_lsit)
         if corpus.language == 'jap' and self.prob(0.006) and self.ischinese(word[-1]) :
 
             str_list_right = '】」。、〕》〉'

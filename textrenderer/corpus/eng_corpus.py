@@ -442,13 +442,13 @@ class EngCorpus(Corpus):
         # print (line[0:10], language)
         # word = line[start:start + length]
         # 不能让文本的开始和结束有空格的出现
-        if language == 'eng' and self.prob(0.1):
-            print(language)
+        if language == 'eng' and self.prob(0.2):
+            #print(language)
             #  有一定的几率将word中的字母随机替换成角标
 
             word_lsit = list(word)
             subscript_index_list = []
-            for i in range(np.random.randint(len(word_lsit)//3 )):
+            for i in range(np.random.randint(3 )):
                 tmp_i = np.random.randint(0,len(word_lsit))
                 if tmp_i not in subscript_index_list:
                     subscript_index_list.append(tmp_i)
@@ -461,7 +461,7 @@ class EngCorpus(Corpus):
             #print(add_scripts)
             for subscript_index in subscript_index_list:
                 num = np.random.randint(1, 3)
-                scripts = np.random.choice([self.down_subscript_list, self.up_subscript_list])
+                scripts = random.choice([self.down_subscript_list, self.up_subscript_list])
                 add_scripts = ''
 
                 for i in range(num):
