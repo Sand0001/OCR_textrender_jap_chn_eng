@@ -448,7 +448,7 @@ class EngCorpus(Corpus):
 
             word_lsit = list(word)
             subscript_index_list = []
-            for i in range(np.random.randint(3 )):
+            for i in range(np.random.randint(3 )):  #随机取放置角标位置
                 tmp_i = np.random.randint(0,len(word_lsit))
                 if tmp_i not in subscript_index_list:
                     subscript_index_list.append(tmp_i)
@@ -460,7 +460,8 @@ class EngCorpus(Corpus):
 
             #print(add_scripts)
             for subscript_index in subscript_index_list:
-                num = np.random.randint(1, 3)
+                num_list= [1,1,2,2,3,4]
+                num = random.choice(num_list)  #随机放置几个连续角标
                 scripts = random.choice([self.down_subscript_list, self.up_subscript_list])
                 add_scripts = ''
 

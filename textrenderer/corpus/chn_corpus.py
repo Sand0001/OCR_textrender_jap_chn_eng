@@ -483,32 +483,7 @@ class ChnCorpus(Corpus):
         #         word[subscript_index] = np.random.choice(self.subscript_list)
         #     word = ''.join(word)
         #print('word',word)
-        if language == 'eng' and self.prob(0.15):
-            #print(language)
-            #  有一定的几率将word中的字母随机替换成角标
 
-            word_lsit = list(word)
-            subscript_index_list = []
-            subscript_num = np.random.randint(3)
-            #print('subscript_num',subscript_num)
-            for i in range(subscript_num):
-                tmp_i = np.random.randint(0,len(word_lsit))
-                if tmp_i not in subscript_index_list:
-                    subscript_index_list.append(tmp_i)
-            #subscript_index_list = np.random.randint(0, len(word_lsit), (np.random.randint(len(word_lsit) )))
-            #word = list(word)
-
-            #print(add_scripts)
-            for subscript_index in subscript_index_list:
-                num = np.random.randint(1, 3)
-                scripts = random.choice([self.down_subscript_list, self.up_subscript_list])
-                add_scripts = ''
-
-                for i in range(num):
-                    add_scripts += np.random.choice(scripts)
-                if word_lsit[subscript_index]!= ' ':
-                    word_lsit[subscript_index] = word_lsit[subscript_index] + add_scripts
-            word = ''.join(word_lsit)
 
         #有一定的几率在句末添加全角句号和顿号
         if corpus.language == 'chn' and self.prob(0.006) and self.ischinese(word[-1]) :
@@ -526,5 +501,32 @@ class ChnCorpus(Corpus):
             tmp_word_1 = np.random.choice(list(str_list_left),1,p=prob)
             #tmp_word_1= random.choice(list(str_list_left))
             word = tmp_word_1[0] + word.strip(' ')
+        if (language == 'eng' and self.prob(0.15)) or (language == 'chn' and  self.prob(0.05)):
+            #print(language)
+            #  有一定的几率将word中的字母随机替换成角标
+
+            word_lsit = list(word)
+            subscript_index_list = []
+            subscript_num = np.random.randint(3)
+            #print('subscript_num',subscript_num)
+            for i in range(subscript_num):
+                tmp_i = np.random.randint(0,len(word_lsit))
+                if tmp_i not in subscript_index_list:
+                    subscript_index_list.append(tmp_i)
+            #subscript_index_list = np.random.randint(0, len(word_lsit), (np.random.randint(len(word_lsit) )))
+            #word = list(word)
+
+            #print(add_scripts)
+            for subscript_index in subscript_index_list:
+                num_list = [1, 1, 2, 2, 3, 4]
+                num = random.choice(num_list)
+                scripts = random.choice([self.down_subscript_list, self.up_subscript_list])
+                add_scripts = ''
+
+                for i in range(num):
+                    add_scripts += np.random.choice(scripts)
+                if word_lsit[subscript_index]!= ' ':
+                    word_lsit[subscript_index] = word_lsit[subscript_index] + add_scripts
+            word = ''.join(word_lsit)
         return word.strip(' '), language
 

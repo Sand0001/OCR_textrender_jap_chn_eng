@@ -305,43 +305,7 @@ class JAPCorpus(Corpus):
 
         word = self.choose_line(corpus)
         language = corpus.language
-        if language == 'eng' and self.prob(0.02):
-            #有一定的几率全大写
-            word = word.upper()
 
-            #有一定的几率首字母大写 TODO
-            #if self.prob(0.02):
-            #    word
-        #print (line[0:10], language)
-        #word = line[start:start + length]
-        #不能让文本的开始和结束有空格的出现
-        if language == 'eng' and self.prob(0.15):
-            print(language)
-            #  有一定的几率将word中的字母随机替换成角标
-
-            word_lsit = list(word)
-            subscript_index_list = []
-            for i in range(np.random.randint(3 )):
-                tmp_i = np.random.randint(0,len(word_lsit))
-                if tmp_i not in subscript_index_list:
-                    subscript_index_list.append(tmp_i)
-
-
-
-            #subscript_index_list = np.random.randint(0, len(word_lsit), (np.random.randint(len(word_lsit) )))
-            #word = list(word)
-
-            #print(add_scripts)
-            for subscript_index in subscript_index_list:
-                num = np.random.randint(1, 3)
-                scripts = random.choice([self.down_subscript_list, self.up_subscript_list])
-                add_scripts = ''
-
-                for i in range(num):
-                    add_scripts += np.random.choice(scripts)
-                if word_lsit[subscript_index]!= ' ':
-                    word_lsit[subscript_index] = word_lsit[subscript_index] + add_scripts
-            word = ''.join(word_lsit)
         if corpus.language == 'jap' and self.prob(0.006) and self.ischinese(word[-1]) :
 
             str_list_right = '】」。、〕》〉'
@@ -358,4 +322,42 @@ class JAPCorpus(Corpus):
             #tmp_word_1= random.choice(list(str_list_left))
             word = tmp_word_1[0] + word.strip(' ')
         #print('word',word)
+        if language == 'eng' and self.prob(0.02) :
+            #有一定的几率全大写
+            word = word.upper()
+
+            #有一定的几率首字母大写 TODO
+            #if self.prob(0.02):
+            #    word
+        #print (line[0:10], language)
+        #word = line[start:start + length]
+        #不能让文本的开始和结束有空格的出现
+        if (language == 'eng' and self.prob(0.15)) or (language == 'jap' and self.prob(0.05)):
+            # print(language)
+            #  有一定的几率将word中的字母随机替换成角标
+
+            word_lsit = list(word)
+            subscript_index_list = []
+            for i in range(np.random.randint(3 )):
+                tmp_i = np.random.randint(0,len(word_lsit))
+                if tmp_i not in subscript_index_list:
+                    subscript_index_list.append(tmp_i)
+
+
+
+            #subscript_index_list = np.random.randint(0, len(word_lsit), (np.random.randint(len(word_lsit) )))
+            #word = list(word)
+
+            #print(add_scripts)
+            for subscript_index in subscript_index_list:
+                num_list = [1, 1, 2, 2, 3, 4]
+                num = random.choice(num_list)
+                scripts = random.choice([self.down_subscript_list, self.up_subscript_list])
+                add_scripts = ''
+
+                for i in range(num):
+                    add_scripts += np.random.choice(scripts)
+                if word_lsit[subscript_index]!= ' ':
+                    word_lsit[subscript_index] = word_lsit[subscript_index] + add_scripts
+            word = ''.join(word_lsit)
         return word.strip(' '), language
