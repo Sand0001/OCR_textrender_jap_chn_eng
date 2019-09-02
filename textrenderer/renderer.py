@@ -696,12 +696,14 @@ class Renderer(object):
         else:
 
             draw.text((x, y), text, fill=text_color, font=font)
-    def draw_text_add_script(self,draw, text, x, y, font, text_color,font_little):
+    def draw_text_add_script_ori(self,draw, text, x, y, font, text_color,font_little):
         word_start = x
         word_height = 0
         random_offset =0 # np.random.randint(-1,1)
 
+
         for index, t in enumerate(text):
+
             if t == '▵' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0: #判定上角标
                 draw.text((x, y+random_offset), text[index + 1], fill=text_color, font=font_little)
                 x += font_little.getsize(text[index + 1])[0]
@@ -729,6 +731,92 @@ class Renderer(object):
                 else:
                     word_height = max(word_height,font.getsize(t)[1])
         return x-word_start,word_height
+
+    def draw_text_add_script(self, draw, text, x, y, font, text_color, font_little):
+        word_start = x
+        word_height = 0
+        random_offset = 0  # np.random.randint(-1,1)
+        start_index = 0
+        tmp_script_index_list = [i.start() for i in re.compile('▿|▵').finditer(text)]
+        for  index,i in enumerate( tmp_script_index_list):
+
+            #print('start_index',start_index)
+            tmp_script_index = i
+            #print('tmp_script_index', tmp_script_index)
+            draw.text((x, y + random_offset), text[start_index:tmp_script_index], fill=text_color, font=font)
+            x+=font.getsize(text[start_index:tmp_script_index])[0]
+            word_height = max(word_height, font.getsize(text[start_index:tmp_script_index])[1])
+            #elif index == len(tmp_script_index_list):
+
+            if text[i] == '▵' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[i + 1])) != 0:
+                draw.text((x, y + random_offset), text[i + 1], fill=text_color, font=font_little)
+                x += font_little.getsize(text[i + 1])[0]
+                word_height = max(word_height,
+                                  font_little.getsize(text[i + 1])[1] - font_little.getoffset(text[i + 1])[
+                                      1])
+                start_index = i + 2
+                if index == len(tmp_script_index_list)-1:
+                    #tmp_script_index = i+1
+                    draw.text((x, y + random_offset), text[start_index:], fill=text_color,
+                              font=font)
+                    x += font.getsize(text[start_index:])[0]
+                    word_height = max(word_height, font.getsize(text[start_index:])[1])
+
+
+
+            elif text[i] == '▿' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[i + 1])) != 0:
+                draw.text((x, y + int(font_little.size) + random_offset + 1), text[i + 1], fill=text_color,
+                          font=font_little)
+                x += font_little.getsize(text[i + 1])[0]
+                word_height = max(word_height, int(font_little.size) + 1 + font_little.getsize(text[i + 1])[1])
+                start_index = i+2
+                if index == len(tmp_script_index_list)-1:
+                    #tmp_script_index = i+1
+                    draw.text((x, y + random_offset), text[start_index:], fill=text_color,
+                              font=font)
+                    x += font.getsize(text[start_index:])[0]
+                    word_height = max(word_height, font.getsize(text[start_index:])[1])
+
+
+
+            #start_index = tmp_script_index
+
+
+
+
+
+        # for index, t in enumerate(text):
+        #
+        #     if t == '▵' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0:  # 判定上角标
+        #         draw.text((x, y + random_offset), text[index + 1], fill=text_color, font=font_little)
+        #         x += font_little.getsize(text[index + 1])[0]
+        #         word_height = max(word_height,
+        #                           font_little.getsize(text[index + 1])[1] - font_little.getoffset(text[index + 1])[1])
+        #     elif t == '▿' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0:  # 判定下角标
+        #         draw.text((x, y + int(font_little.size) + random_offset + 1), text[index + 1], fill=text_color,
+        #                   font=font_little)
+        #         x += font_little.getsize(text[index + 1])[0]
+        #         word_height = max(word_height, int(font_little.size) + 1 + font_little.getsize(text[index + 1])[1])
+        #
+        #     else:
+        #         if (text[index - 1] == '▵' or text[index - 1] == '▿') and len(
+        #                 re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(t)) != 0:
+        #             continue
+        #         draw.text((x, y + random_offset), t, fill=text_color, font=font)
+        #         # mask, offset = font.getmask2(t, draw.mode)
+        #         x += font.getsize(t)[0]
+        #         # x += offset[0]
+        #         if t == '_':
+        #             tmp_word_height = font.getsize(t)[1] - font.getoffset(t)[1]
+        #             if tmp_word_height < word_height:
+        #
+        #                 word_height = max(word_height, font.getsize(t)[1])
+        #             else:
+        #                 word_height = max(word_height, font.getsize(t)[1] - font.getoffset(t)[1])
+        #
+        #         else:
+        #             word_height = max(word_height, font.getsize(t)[1])
+        return x - word_start, word_height
 
 
 
@@ -899,7 +987,7 @@ class Renderer(object):
 
             # Font size in point
             font_size = random.randint(self.cfg.font_size.min, self.cfg.font_size.max)
-
+            print(font_path)
             font = ImageFont.truetype(font_path, font_size)
             font_little_size= np.random.randint(font_size//2-1,font_size//2+1)
             font_little = ImageFont.truetype(font_path, font_little_size)
@@ -960,7 +1048,7 @@ class Renderer(object):
     def apply_blur_on_output(self, img, lock = None):
         if prob(0.5):
             self.dmsg ("-*- APPLY blured 3,5 ")
-            return self.apply_gauss_blur(img, [3, 5], lock = lock)
+            return self.apply_gauss_blur(img, [1, 2], lock = lock)
         else:
             self.dmsg ("-*- APPLY blured")
             return self.apply_norm_blur(img)
