@@ -317,111 +317,30 @@ class EngCorpus(Corpus):
         # 每次 gen_word，随机选一个预料文件，随机获得长度为 word_length 的字符
 
         # 补充一下单字，特别是那种频次特别低的单字
-        r = random.randint(0, 8)
-        # r = 1
-        # print ("GET SAMPLE ", r, len(self.has_been_created_text))
+        # r = random.randint(0, 30)
         # print (r, len(self.single_words_list))
-        # if False and len(self.single_words_list) > 0 and self.prob(0.02):
-
-        if len(self.single_words_list) > 0 and self.prob(1):
+        if len(self.single_words_list) > 0 and self.prob(0.02):
             word = ''
             for i in range(0, self.length):
                 r_i = random.randint(0, len(self.single_words_list) - 1)
                 word += self.single_words_list[r_i]
-            if self.prob(0.3):
-                subscript_index_list = np.random.randint(0, len(word), (np.random.randint(len(word) // 2)))
-                for subscript_index in subscript_index_list:
-                    word = word.replace(word[subscript_index], np.random.choice(self.subscript_list))
-            # 如果已经出现过了，那么Continue掉
-            if word in self.has_been_created_text:
-                # print ("Abandon has_been_created_text word : ", word)
-                raise Exception("single_words, already has been created")
-                return None
-            self.has_been_created_text[word] = 1
-            return word, 'chn'
+            return word, 'eng'
 
         corpus = random.choice(self.corpus)
-        # 减少一些英文的比例
-        if corpus.language == 'eng' and self.prob(0.2):
-            corpus = random.choice(self.corpus)
+        # print(corpus.content)
+        # corpus = self.corpus[1]
 
-        # 选择稀有词所在的位置进行嘎嘎
-        # 降低概率
-        if False and corpus.language == 'chn' and len(corpus.low_charset_level_list) > 0 and self.prob(0.25):
-            line = corpus.content
-            r_i = random.randint(0, len(corpus.low_charset_level_list) - 1)
-            index_list = corpus.low_char_index_dct[corpus.low_charset_level_list[r_i]]
-            # print ("Low Word Index_List", index_list)
-            r_list_i = index_list[random.randint(0, len(index_list) - 1)]
-            # 还是固定一下位置吧，这样好做去重，否则的话，会出现一大堆只差一个字的奇奇怪怪的东西
-            # r_start = random.randint(r_list_i - self.length + 1, r_list_i)
-            r_start = r_list_i - 3
-            # print ("Low Word Start : ", r_start)
-            if r_start >= 0 and r_start + self.length < len(line):
-                word = self.get_content_of_len_from_pos(line, 2 * self.length, r_start)
-                # word = line [r_start : r_start + self.length]
-                print("Choose Low Word : ", corpus.low_charset_level_list[r_i], " Choose : ", word)
-                if word in self.has_been_created_text:
-                    print("Abandon has_been_created_text word : ", word)
-                    # return None
-                self.has_been_created_text[word] = 1
-                return word, corpus.language
-            else:
-                return None
-
+        word = self.choose_line(corpus)
         language = corpus.language
-        retry_num = 10
-        OK = False
 
-        for i in range(0, retry_num):
-            word = self.choose_line(corpus)
-            # print ("try : ", word)
-            if word in self.has_been_created_text:
-                # print ("choose already exists : ", word)
-                continue
-            OK = True
-            break
-            '''
-            #平衡样本
-            if self.balanced_sample(word, language):
-                OK = True
-                #print ("Found Balanced word : ", word)
-                break
-            else:
-                #print ("Found unBalanced word : ", word)
-                #70%的概率保留非平衡样本
-                if self.prob(0.75):
-                    OK = True
-                    #print ("preserve unBalanced word : ", word)
-                    break
-                else:
-                    pass
-                    #print ("Abandon unBalanced word : ", word)
-                #如果全是高频词，那么有一定的概率保留
-            '''
-
-        if False == OK:
-            # print  ("failed to find sample after tried : ", retry_num)
-            # raise Exception("Failed to found sample")
-            return None
-        self.has_been_created_text[word] = 1
-        print(language)
-        if language == 'eng':
+        if language == 'eng' and self.prob(0.02):
             # 有一定的几率全大写
-            if self.prob(0.02):
-                word = word.upper()
-
-        if self.prob(1):
-            subscript_index_list = np.random.randint(0, len(word), (np.random.randint(len(word) // 2)))
-            for subscript_index in subscript_index_list:
-                word = word.replace(word[subscript_index], np.random.choice(self.subscript_list))
+            word = word.upper()
 
             # 有一定的几率首字母大写 TODO
             # if self.prob(0.02):
-            #    word =
-        # print ("Choose Word : [", word , "]" , len(word), language)
-        # word = line[start:start + length]
-        # 不能让文本的开始和结束有空格的出现
+            #    word
+
         return word.strip(' '),language
     def get_sample_add_script(self, img_index):
         # 每次 gen_word，随机选一个预料文件，随机获得长度为 word_length 的字符
@@ -443,7 +362,7 @@ class EngCorpus(Corpus):
         word = self.choose_line(corpus)
         language = corpus.language
 
-        if language == 'eng' and self.prob(1):
+        if language == 'eng' and self.prob(0.02):
             # 有一定的几率全大写
             word = word.upper()
 
@@ -453,7 +372,7 @@ class EngCorpus(Corpus):
         # print (line[0:10], language)
         # word = line[start:start + length]
         # 不能让文本的开始和结束有空格的出现
-        if language == 'eng' and self.prob(1):
+        if language == 'eng' and self.prob(0.02):
             #print(language)
             #  有一定的几率将word中的字母随机替换成角标
 
