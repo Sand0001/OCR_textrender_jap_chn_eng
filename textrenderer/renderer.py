@@ -987,7 +987,11 @@ class Renderer(object):
 
             # Font size in point
             font_size = random.randint(self.cfg.font_size.min, self.cfg.font_size.max)
-            print(font_path)
+            print(word,font_path)
+            #'Lato-Black.ttf''FFF_Tusj.ttf'
+            #font_path = '/fengjing/data_script/OCR_textrender/data/eng/Capture_it.ttf'
+            if 'Capture_it.ttf' in font_path:
+                word = word.upper()
             font = ImageFont.truetype(font_path, font_size)
             font_little_size= np.random.randint(font_size//2-1,font_size//2+1)
             font_little = ImageFont.truetype(font_path, font_little_size)
