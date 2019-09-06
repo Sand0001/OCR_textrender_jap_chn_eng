@@ -156,7 +156,7 @@ class ChnCorpus(Corpus):
 
             print_end = '\n' if i == len(self.corpus_path) - 1 else '\r'
             print("Loading chn corpus: {}/{}".format(i + 1, len(self.corpus_path)), end=print_end)
-            with open(p, encoding='utf-8') as f:
+            with open(p, encoding='utf-8',errors='ignore') as f:
                     data = f.readlines()
 
             lines = []
