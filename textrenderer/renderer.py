@@ -500,9 +500,9 @@ class Renderer(object):
 
                 np_img = np.array(pil_img).astype(np.float32)
         if language == 'chn':
-            str_list_left = '《〈【〔「‘“'
+            str_list_left = '《〈【〔「'
 
-            str_list_right = '》！？〉】〕」’：”】]。、'
+            str_list_right = '》！？〉】〕」：】。、'
             if word[-1] in str_list_right:
             #if word[-1] == '。' or word[-1] == '、':
                 tmp_right_offset = np.random.randint(font.size//3,font.size//3*2)
@@ -737,6 +737,7 @@ class Renderer(object):
         word_height = 0
         random_offset = 0  # np.random.randint(-1,1)
         start_index = 0
+        random_offset_script = np.random.randint(-1,1)
         tmp_script_index_list = [i.start() for i in re.compile('▿|▵').finditer(text)]
         for  index,i in enumerate( tmp_script_index_list):
 
