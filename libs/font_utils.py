@@ -41,8 +41,10 @@ def get_font_paths_from_list(list_filename):
     font_dct['chn'] = []
     font_dct['eng'] = []
     font_dct['jap'] = []
+    font_dct['eng_strict'] = []
     for font_path in fonts:
         tmp_font_path = font_path.split('/')[-2]
+
         if 'chn' in tmp_font_path:
             font_dct['chn'].append(font_path)
             #font_dct['eng'].append(font_path)
@@ -51,6 +53,12 @@ def get_font_paths_from_list(list_filename):
                 font_dct['jap'].append(font_path)
                 #font_dct['eng'].append(font_path)
             else:
+                if 'walkway' not in font_path.lower() and 'raleway' not in font_path.lower() \
+                        and 'courier' not in font_path.lower()\
+                        and 'Sansation-LightItalic.ttf'.lower() not in font_path.lower()\
+                        and 'CaviarDreams_BoldItalic.tt'.lower() not in font_path.lower()\
+                        and 'Lato-SemiboldItalic.ttf'.lower() not in font_path.lower():
+                    font_dct['eng_strict'].append(font_path)
                 font_dct['eng'].append(font_path)
     #print(font_dct)
     return font_dct

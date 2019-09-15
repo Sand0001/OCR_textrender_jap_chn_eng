@@ -936,9 +936,13 @@ class Renderer(object):
 
         return out
 
-    def choose_font(self,language,font_dct):
+    def choose_font(self,language,word ,font_dct):
         if language == 'eng':
-            font_path = random.choice(font_dct['eng'])
+            if '=' in word:
+                font_path = random.choice(font_dct['eng_strict'])
+            else:
+
+                font_path = random.choice(font_dct['eng'])
         else:
             if language == 'jap':
                 font_path = random.choice(font_dct['jap'])
@@ -967,15 +971,18 @@ class Renderer(object):
             if self.clip_max_chars and len(word) > self.max_chars:
                 word = word[:self.max_chars]
             font_dct = self.fonts
-
-            font_path = self.choose_font(language, font_dct)
-            for i in range(10):
-                if ('-' or'—' or '–' or '=' in word) and ('walkway' or 'raleway' or 'courier' in font_path.lower()) :
-                    # print('.............')
-                    font_path = self.choose_font(language, font_dct)
-                else:
-                    break
+            #word = word+'='
+            font_path = self.choose_font(language, word, font_dct)
+            # for i in range(10):
+            #     if ('-' or'—' or '–' or '=' in word) and ('walkway'in font_path.lower()
+            #                                               or 'raleway' in font_path.lower()
+            #                                               or 'courier' in font_path.lower()) :
+            #         # print('.............')
+            #         font_path = self.choose_font(language, font_dct)
+            #     else:
+            #         break
             #if '　' not in word:
+
             if self.strict:
                 unsupport_chars = self.font_unsupport_chars[font_path]
                 for c in word:
@@ -989,6 +996,7 @@ class Renderer(object):
             # Font size in point
             font_size = random.randint(self.cfg.font_size.min, self.cfg.font_size.max)
             #print(word,font_path)
+            #print(font_path)
             #'Lato-Black.ttf''FFF_Tusj.ttf'
             #font_path = '/fengjing/data_script/OCR_textrender/data/eng/Capture_it.ttf'
             if 'Capture_it.ttf' in font_path:
