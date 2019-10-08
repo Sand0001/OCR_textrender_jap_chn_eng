@@ -77,9 +77,9 @@ def generate_img(img_index, q=None):
     #raise Exception('123')
     # Make sure different process has different random seed
     np.random.seed()
-    im, word = gen_img_retry(renderer, img_index)
+    im, word,font_name = gen_img_retry(renderer, img_index)
 
-    base_name = '{:08d}'.format(img_index)
+    base_name = '{:08d}'.format(img_index)+'_'+font_name.replace(' ','_').split('.')[0]
     #print ("Generate Image : ", img_index)
 
     if not flags.viz:

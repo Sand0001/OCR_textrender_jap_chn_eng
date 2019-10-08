@@ -76,9 +76,9 @@ def generate_img(img_index, q=None):
     # Make sure different process has different random seed
     np.random.seed()
 
-    im, word = gen_img_retry(renderer, img_index)
+    im, word,font_name = gen_img_retry(renderer, img_index)
 
-    base_name = '{:08d}'.format(img_index)
+    base_name = '{:08d}'.format(img_index)+'_'+font_name.replace(' ','_').split('.')[0]
 
     if not flags.viz:
         fname = os.path.join(flags.save_dir, base_name + '.jpg')
@@ -90,6 +90,7 @@ def generate_img(img_index, q=None):
         cv2.imwrite(fname, im, [int(cv2.IMWRITE_JPEG_QUALITY), 95])
 
         label = "{} {}".format(base_name, word)
+        print(label)
 
         if q is not None:
             q.put(label)
@@ -114,6 +115,6 @@ if __name__ == "__main__":
     # https://github.com/pytorch/pytorch/issues/3492#issuecomment-382660636
     if utils.get_platform() == "OS X":
         mp.set_start_method('spawn', force=True)
-    for i in range(0, 20):
+    for i in range(0, 150):
         generate_img(i)
    

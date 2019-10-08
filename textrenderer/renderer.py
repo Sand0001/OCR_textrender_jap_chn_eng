@@ -14,6 +14,7 @@ from textrenderer.noiser import Noiser
 import libs.font_utils as font_utils
 from textrenderer.background_generator import BackgroundGenerator
 import re
+import os
 # noinspection PyMethodMayBeStatic
 from textrenderer.remaper import Remaper
 import traceback
@@ -91,7 +92,7 @@ class Renderer(object):
         t = self.start()
         lock = None
 
-        word, font, word_size,font_little,language = self.pick_font(img_index)
+        word, font, word_size,font_little,language,font_name = self.pick_font(img_index)
         #word = 't_he age-adjusted incidence undefined'
 
         self.end(t, "pick_font")
@@ -264,7 +265,7 @@ class Renderer(object):
 
         self.end(t, "apply2 ")
         self.dmsg ("***********************END*****************")
-        return word_img, word
+        return word_img, word,font_name
 
     def dmsg(self, *msg):
         if self.debug:
@@ -971,7 +972,8 @@ class Renderer(object):
             if self.clip_max_chars and len(word) > self.max_chars:
                 word = word[:self.max_chars]
             font_dct = self.fonts
-            #word = word+'='
+            #word = word+'_'
+
             font_path = self.choose_font(language, word, font_dct)
             # for i in range(10):
             #     if ('-' or'—' or '–' or '=' in word) and ('walkway'in font_path.lower()
@@ -998,13 +1000,14 @@ class Renderer(object):
             #print(word,font_path)
             #print(font_path)
             #'Lato-Black.ttf''FFF_Tusj.ttf'
-            #font_path = '/fengjing/data_script/OCR_textrender/data/eng/Capture_it.ttf'
+            #font_path = '/fengjing/data_script/OCR_textrender/data/eng/Walkway_Oblique_Bold.ttf'
+            font_name = os.path.basename(font_path)
             if 'Capture_it.ttf' in font_path:
                 word = word.upper()
             font = ImageFont.truetype(font_path, font_size)
             font_little_size= np.random.randint(font_size//2-1,font_size//2+1)
             font_little = ImageFont.truetype(font_path, font_little_size)
-            return word, font, self.get_word_size(font, word),font_little,language
+            return word, font, self.get_word_size(font, word),font_little,language,font_name
 
         except Exception as e:
             print("Retry pick_font: %s" % str(e))
