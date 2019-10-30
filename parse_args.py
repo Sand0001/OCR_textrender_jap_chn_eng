@@ -31,6 +31,10 @@ def parse_args():
     parser.add_argument('--bg_dir', type=str, default='./data/bg',
                         help="Some text images(according to your config in yaml file) will"
                              "use pictures in this folder as background")
+    parser.add_argument('--fg_dir', type=str, default='./data/fg',
+                        help="Some text images(according to your config in yaml file) will"
+                             "use pictures in this folder as foreground")
+
 
     parser.add_argument('--corpus_dir', type=str, default="./data/corpus",
                         help='When corpus_mode is chn or eng, text on image will randomly selected from corpus.'

@@ -23,11 +23,12 @@ import matplotlib.pyplot as plt
 #import pysnooper
 
 class Renderer(object):
-    def __init__(self, corpus, fonts, bgs, cfg, width=256, height=32,
+    def __init__(self, corpus, fonts, bgs,fgs, cfg, width=256, height=32,
                  clip_max_chars=False, debug=False, gpu=False, strict=True):
         self.corpus = corpus
         self.fonts = fonts
         self.bgs = bgs
+        self.fgs = fgs
         self.out_width = width
         self.out_height = height
         self.clip_max_chars = clip_max_chars
@@ -65,8 +66,9 @@ class Renderer(object):
         i = 0
         if text_box_pnts_list is not None:
             for text_box_pnts in text_box_pnts_list:
+
+                test_img = draw_box(test_img, text_box_pnts, (0, 255, i * 255 ))
                 i += 1
-                test_img = draw_box(test_img, text_box_pnts, (0, 255, i * 25 % 255))
         #print (test_img)
         test_img = Image.fromarray(test_img.astype('uint8')).convert('RGB')
         if title is not None:
@@ -134,6 +136,10 @@ class Renderer(object):
         #test_image = draw_box(word_img, text_box_pnts, (0, 255, 155))
         #plt.imshow(test_image)
         #plt.show()
+
+        if apply(self.cfg.seamless_clone):  #seal 做前景融合
+            word_img = self.apply_seamless_cloe_add_foreground(word_img)
+
         if self.debug:
             word_img = draw_box(word_img, text_box_pnts, (0, 255, 155))
         if self.show:
@@ -150,7 +156,7 @@ class Renderer(object):
         #plt.imshow(word_img)
         #plt.show()
         t = self.start()
-        #print ("Before transform ", word_img.shape)
+        #print ("Before transform word_img.shape", word_img.shape)
         
         word_img, bg_pnts_transformed, text_box_pnts_transformed = \
             self.apply_perspective_transform(word_img, text_box_pnts,
@@ -168,6 +174,7 @@ class Renderer(object):
         #plt.show()
         self.dmsg("After perspective transform")
         t = self.start()
+
         if self.debug:
             #bg_pnts_transformed表示的是，背景的四个顶点，在Transform后，图片会扩大，背景色为黑色，必须要限定裁剪在背景范围内，否则会出现多余的黑色
             _, crop_bbox = self.crop_img(word_img, text_box_pnts_transformed,bg_pnts_transformed)
@@ -175,6 +182,10 @@ class Renderer(object):
         else:
             #all bad comes from here, why leaving some padding?
             word_img, crop_bbox = self.crop_img(word_img, text_box_pnts_transformed, bg_pnts_transformed)
+        #if apply(self.cfg.seamless_clone):
+        #print('word_img.shape',word_img.shape)
+
+
         if self.show:
             print ("AFTER CROP")
             #左下, 右下, 右上，左上
@@ -409,6 +420,7 @@ class Renderer(object):
         # It's important do crop first and than do resize for speed consider
         #img 是 宽 * 高
         dst = img[dst_bbox[1]:dst_bbox[1] + dst_bbox[3], dst_bbox[0]:dst_bbox[0] + dst_bbox[2]]
+        #dst = img[bbox[1]:bbox[1] + bbox[3], bbox[0]:bbox[0] + bbox[2]]
         if self.show:
             print ("Before Resize : ", dst.shape)
             self.plt_show(dst)
@@ -493,9 +505,9 @@ class Renderer(object):
                                                                                        bg_width, bg_height)
             np_img = np.array(pil_img).astype(np.float32)
         else:
-            if apply(self.cfg.seamless_clone):
-                np_img = self.draw_text_seamless(font, bg, word, word_color, word_height, word_width, offset)
-            else:
+            # if apply(self.cfg.seamless_clone):
+            #     np_img = self.draw_text_seamless(font, bg, word, word_color, word_height, word_width, offset)
+            # else:
                 self.draw_text_wrapper(draw, word, text_x - offset[0], text_y - offset[1], font, word_color)
                 # draw.text((text_x - offset[0], text_y - offset[1]), word, fill=word_color, font=font)
 
@@ -582,10 +594,11 @@ class Renderer(object):
                                                                                        bg_width, bg_height)
             np_img = np.array(pil_img).astype(np.float32)
         else:
-            if apply(self.cfg.seamless_clone):
-                np_img = self.draw_text_seamless(font, bg, word, word_color, word_height, word_width, offset)
-            else:                          #   目前只将subscript加入这里 seamless_clone和random_space里没有
+            # if apply(self.cfg.seamless_clone):
+            #     np_img = self.draw_text_seamless(font, bg, word, word_color, word_height, word_width, offset)
+            # else:                          #   目前只将subscript加入这里 seamless_clone和random_space里没有
                 #self.draw_text_wrapper(draw, word, text_x - offset[0], text_y - offset[1], font, word_color)
+
                 word_width,word_height = self.draw_text_add_script(draw, word, text_x - offset[0], text_y - offset[1], font, word_color,font_little)
                 # draw.text((text_x - offset[0], text_y - offset[1]), word, fill=word_color, font=font)
 
@@ -641,12 +654,13 @@ class Renderer(object):
             cv2.MIXED_CLONE,
             cv2.MONOCHROME_TRANSFER
         ])
-
+        #flag = cv2.MIXED_CLONE
         mixed_clone = cv2.seamlessClone(text_img_bgr, bg_bgr, text_mask, center, flag)
 
         np_img = cv2.cvtColor(mixed_clone, cv2.COLOR_BGR2GRAY)
 
         return np_img
+
 
     def draw_text_with_random_space(self, draw, font, word, word_color, bg_width, bg_height):
         """ If random_space applied, text_x, text_y, word_width, word_height may change"""
@@ -968,7 +982,8 @@ class Renderer(object):
             #word = '[+/- 　RD] KpH, 7.01 +　2'
             #if word is None:
             #word = '有粘性物质（O~1，0E-'
-            #language = 'chn'
+            # language = 'eng'
+            # word = 'jap_YuGothic=Bold.otf'
             if self.clip_max_chars and len(word) > self.max_chars:
                 word = word[:self.max_chars]
             font_dct = self.fonts
@@ -1000,13 +1015,17 @@ class Renderer(object):
             #print(word,font_path)
             #print(font_path)
             #'Lato-Black.ttf''FFF_Tusj.ttf'
-            #font_path = '/fengjing/data_script/OCR_textrender/data/eng/Walkway_Oblique_Bold.ttf'
+            #font_path = '/fengjing/data_script/OCR_textrender/data/eng/PSL-ChamnarnBold.ttf'
+            #font_path = '/Users/feng/Downloads/新日语字体/ShinGoPr6-Regular'
             font_name = os.path.basename(font_path)
             if 'Capture_it.ttf' in font_path:
                 word = word.upper()
+
             font = ImageFont.truetype(font_path, font_size)
             font_little_size= np.random.randint(font_size//2-1,font_size//2+1)
             font_little = ImageFont.truetype(font_path, font_little_size)
+            #word = 'ワクチン接種後免疫あり'
+            #word = word+'-A='
             return word, font, self.get_word_size(font, word),font_little,language,font_name
 
         except Exception as e:
@@ -1030,6 +1049,85 @@ class Renderer(object):
         size = (size[0] - offset[0], size[1] - offset[1])
         return size
 
+    def gray2rgb(self, imggray):
+        # 原图 R G 通道不变，B 转换回彩图格式
+        # R = rgb[:, :, 0]
+        # G = rgb[:, :, 1]
+        # B = ((imggray) - 0.299 * R - 0.587 * G) / 0.114
+        #rgb_img = np.ones(imggray.shape)
+        rgb_img = np.zeros((imggray.shape[0],imggray.shape[1],3))
+        rgb_img[:, :, 2] = imggray
+        rgb_img[:, :, 0] = imggray
+        rgb_img[:, :, 1] = imggray
+
+        return rgb_img
+
+    def apply_seamless_cloe_add_foreground(self,img1):
+        cv2.imwrite('1.jpg',img1)
+        img1_bg = cv2.imread('1.jpg')
+
+        #img1 = cv2.cvtColor(img1,cv2.COLOR_BGR2GRAY)
+        #img1_bg = cv2.cvtColor(img1, cv2.COLOR_GRAY2RGB)
+        #img1_bg = self.gray2rgb(img1)
+
+        #
+        # plt.figure('after img1')
+        # plt.imshow(img1_bg)
+        # plt.show()
+        # plt.figure('1')
+        # plt.imshow(img1)
+        # plt.show()
+        # opencv seamlessClone require bgr image
+        #text_img_bgr = np.ones((img1.shape[0], img1.shape[1], 3), np.uint8)
+        #bg_bgr = np.ones((img1.shape[0], img1.shape[1], 3), np.uint8)
+        #cv2.cvtColor(text_img, cv2.COLOR_GRAY2BGR, text_img_bgr)
+
+        #img1 = bg_bgr
+
+        img2  = random.choice(self.fgs)
+        height, width = img1.shape[0:2]
+        #print('img1 shape', img1.shape)
+
+        # img2 = cv2.resize(img2,(img2.shape[1],img2.shape[0]))
+        height_2, width_2 = img2.shape[0:2]
+        #print('img ori shape', img2.shape)
+        # random crop
+        # img2 = img2[:random.randint(0,min(width,width_2)),:random.randint(0,min(height,height_2))]
+
+        # img2 = img2[random.randint(0, min(width_2,width))]
+        # 最大crop img 的宽高
+        crop_max_width = min(width, width_2)
+        crop_max_height = min(height_2, height)
+        # 实际crop img 宽高
+        crop_height = random.randint(5, crop_max_height)
+        crop_width = random.randint(5, crop_max_width)
+        # crop img 随机裁剪的位置
+        crop_x = random.randint(0, crop_max_width - crop_width)
+        crop_y = random.randint(0, crop_max_height - crop_height)
+
+        crop_img = img2[crop_y:crop_y + crop_height, crop_x:crop_x + crop_width]
+
+        crop_h, crop_w = crop_img.shape[0:2]
+        #print('crop_h,crop_w', crop_h, crop_w)
+        # 随机x，y 框放的位置
+        range_x = random.randint(0, width - crop_w)
+        range_y = random.randint(0, height - crop_h)
+
+        # 由随机xy 计算center
+        center = (range_x + crop_w // 2, range_y + crop_h // 2)
+
+        mask = 255 * np.ones(crop_img.shape, crop_img.dtype)
+        # plt.figure('crop img')
+        # plt.imshow(crop_img)
+        # plt.show()
+
+        # img1_bg = cv2.imread('/fengjing/data_script/OCR_textrender/output/default/00000000_Lato-Light.jpg')
+        # img1_bg = cv2.resize(img1_bg,(img1.shape[1],img1.shape[0]))
+        mixed_clone = cv2.seamlessClone(crop_img, img1_bg, mask, (center[0], center[1]), cv2.MIXED_CLONE)
+        np_img = cv2.cvtColor(mixed_clone, cv2.COLOR_BGR2GRAY)
+        #cv2.imwrite('/fengjing/data_script/OCR_textrender/output/default/11.jpg', mixed_clone)
+        #np_img = mixed_clone
+        return np_img
     def apply_perspective_transform(self, img, text_box_pnts, max_x, max_y, max_z, gpu=False):
         """
         Apply perspective transform on image

@@ -51,15 +51,11 @@ class Liner(object):
         return line_effect_func(word_img, text_box_pnts, word_color,word,font)
 
     def apply_under_line(self, word_img, text_box_pnts, word_color,word,font,):
-        y_offset = random.choice([0, 1])
+        y_offset = random.choice([1,2,3,4,5,6])
 
         text_box_pnts[2][1] += y_offset
         text_box_pnts[3][1] += y_offset
         #print(word, font)
-
-
-
-
         line_color = word_color + random.randint(0, 10)
         # plt.figure('befor line')
         # plt.imshow(word_img)
@@ -89,14 +85,6 @@ class Liner(object):
                 for i in range(len(word)):
                     size = font.getsize(word[i])
                     chars_size.append(size)
-                    #print(size)
-                    # xStep = (rightBottomX - leftBottomX) // divded
-                    # yStep = (rightBottomY - leftBottomY) // divded
-
-                    # for i in range(0, divded - 1):
-                    #print('draw cor',leftBottomX_tmp,leftBottomY)
-
-
                     if word[i]!= ' ':
                         if len(sub_word_index_list_in_word)!=0:
                             for index in sub_word_index_list_in_word:
@@ -149,9 +137,11 @@ class Liner(object):
                                    color=line_color,
                                    thickness=thickness,
                                    lineType=cv2.LINE_AA)
+
                 leftBottomX_tmp = leftBottomX_tmp + size[0]
-
-
+        # plt.figure('22222')
+        # plt.imshow(word_img)
+        # plt.show()
 
 
         return dst, text_box_pnts

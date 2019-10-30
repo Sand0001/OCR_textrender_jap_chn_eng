@@ -90,6 +90,23 @@ def load_bgs(bg_dir):
 
     print("Background num: %d" % len(dst))
     return dst
+def load_foreground(forground_dir):
+    dst = []
+    for root, sub_folder, file_list in os.walk(forground_dir):
+        for file_name in file_list:
+            if '.jpg' in file_name or '.png' in file_name:
+                image_path = os.path.join(root, file_name)
+
+                # For load non-ascii image_path on Windows
+                fg = cv2.imread(image_path)
+                #fg = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
+
+                dst.append(fg)
+
+    print("foreground num: %d" % len(dst))
+    return dst
+
+
 
 
 def load_chars(filepath):

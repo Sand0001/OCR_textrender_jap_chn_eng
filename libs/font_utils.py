@@ -60,7 +60,7 @@ def get_font_paths_from_list(list_filename):
                         and 'Lato-SemiboldItalic.ttf'.lower() not in font_path.lower():
                     font_dct['eng_strict'].append(font_path)
                 font_dct['eng'].append(font_path)
-    #print(font_dct)
+    print(font_dct)
     return font_dct
 
 
@@ -91,21 +91,24 @@ def check_font_chars(ttf, charset):
     :return: unsupported_chars, supported_chars
     """
     #chars = chain.from_iterable([y + (Unicode[y[0]],) for y in x.cmap.items()] for x in ttf["cmap"].tables)
-    chars_int=set()
-    for table in ttf['cmap'].tables:
-        for k,v in table.cmap.items():
-            chars_int.add(k)            
+    try:
+        chars_int=set()
+        for table in ttf['cmap'].tables:
+            for k,v in table.cmap.items():
+                chars_int.add(k)
 
-    unsupported_chars = []
-    supported_chars = []
-    for c in charset:
-        if ord(c) not in chars_int:
-            unsupported_chars.append(c)
-        else:
-            supported_chars.append(c)
+        unsupported_chars = []
+        supported_chars = []
+        for c in charset:
+            if ord(c) not in chars_int:
+                unsupported_chars.append(c)
+            else:
+                supported_chars.append(c)
 
-    ttf.close()
-    return unsupported_chars, supported_chars
+        ttf.close()
+        return unsupported_chars, supported_chars
+    except:
+        return False
 
 
 def get_fonts_chars(fonts, chars_file):
@@ -141,9 +144,13 @@ def get_fonts_chars(fonts, chars_file):
                 with open(cache_file_path, 'wb') as f:
                     pickle.dump(supported_chars, f, pickle.HIGHEST_PROTOCOL)
             else:
-                with open(cache_file_path, 'rb') as f:
-                    supported_chars = pickle.load(f)
-                print('Load font(%s) supported chars(%d) from cache' % (font_path, len(supported_chars)))
+                try:
+                    with open(cache_file_path, 'rb') as f:
+                        supported_chars = pickle.load(f)
+                    print('Load font(%s) supported chars(%d) from cache' % (font_path, len(supported_chars)))
+                except:
+                    print('这个字体不行' ,font_path)
+                    continue
 
             out[font_path] = supported_chars
 

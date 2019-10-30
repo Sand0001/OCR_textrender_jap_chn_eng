@@ -30,10 +30,11 @@ cfg = load_config(flags.config_file)
 
 fonts = font_utils.get_font_paths_from_list(flags.fonts_list)
 bgs = utils.load_bgs(flags.bg_dir)
+fgs = utils.load_foreground(flags.fg_dir)
 
 corpus = corpus_factory(flags.corpus_mode, flags.chars_file, flags.corpus_dir, flags.length)
 
-renderer = Renderer(corpus, fonts, bgs, cfg,
+renderer = Renderer(corpus, fonts, bgs, fgs,cfg,
                     height=flags.img_height,
                     width=flags.img_width,
                     clip_max_chars=flags.clip_max_chars,
@@ -79,6 +80,7 @@ def generate_img(img_index, q=None):
     im, word,font_name = gen_img_retry(renderer, img_index)
 
     base_name = '{:08d}'.format(img_index)+'_'+font_name.replace(' ','_').split('.')[0]
+    #base_name = '{:08d}'.format(img_index)
 
     if not flags.viz:
         fname = os.path.join(flags.save_dir, base_name + '.jpg')
