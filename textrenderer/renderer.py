@@ -1064,9 +1064,9 @@ class Renderer(object):
 
     def apply_seamless_cloe_add_foreground(self,img1):
         cv2.imwrite('1.jpg',img1)
-        img1_bg = cv2.imread('1.jpg')
+        img1 = cv2.imread('1.jpg')
 
-        #img1 = cv2.cvtColor(img1,cv2.COLOR_BGR2GRAY)
+        #img1 = cv2.cvtColor(img1_bg,cv2.COLOR_BGR2GRAY)
         #img1_bg = cv2.cvtColor(img1, cv2.COLOR_GRAY2RGB)
         #img1_bg = self.gray2rgb(img1)
 
@@ -1123,8 +1123,22 @@ class Renderer(object):
 
         # img1_bg = cv2.imread('/fengjing/data_script/OCR_textrender/output/default/00000000_Lato-Light.jpg')
         # img1_bg = cv2.resize(img1_bg,(img1.shape[1],img1.shape[0]))
-        mixed_clone = cv2.seamlessClone(crop_img, img1_bg, mask, (center[0], center[1]), cv2.MIXED_CLONE)
-        np_img = cv2.cvtColor(mixed_clone, cv2.COLOR_BGR2GRAY)
+        mixed_clone = cv2.seamlessClone(crop_img, img1, mask, (center[0], center[1]), cv2.MIXED_CLONE)
+
+        ret, binary = cv2.threshold(~crop_img[:, :, 2], 30, 255, cv2.THRESH_BINARY)
+        mask_coor = np.argwhere(binary > 200)
+
+        for i in mask_coor:
+            try:
+                # print(i)
+                img1[range_y + i[0], range_x + i[1]] = mixed_clone[range_y + i[0], range_x + i[1]]
+            except Exception as e:
+                print(e)
+
+                continue
+
+
+        np_img = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
         #cv2.imwrite('/fengjing/data_script/OCR_textrender/output/default/11.jpg', mixed_clone)
         #np_img = mixed_clone
         return np_img
