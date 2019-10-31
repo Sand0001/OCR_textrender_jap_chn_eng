@@ -1063,8 +1063,9 @@ class Renderer(object):
         return rgb_img
 
     def apply_seamless_cloe_add_foreground(self,img1):
-        cv2.imwrite('1.jpg',img1)
-        img1 = cv2.imread('1.jpg')
+        tmp_name = '/data1/fengjing/output/tmp/' + str(time.time()+random.random()) +'jpg'
+        cv2.imwrite(tmp_name,img1)
+        img1 = cv2.imread(tmp_name)
 
         #img1 = cv2.cvtColor(img1_bg,cv2.COLOR_BGR2GRAY)
         #img1_bg = cv2.cvtColor(img1, cv2.COLOR_GRAY2RGB)
