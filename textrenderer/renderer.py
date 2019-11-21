@@ -964,7 +964,7 @@ class Renderer(object):
             if language == 'jap':
                 font_path = random.choice(font_dct['jap'])
             else:
-                if ',' in word:
+                if ',' in word or ';' in word:
                     font_path = random.choice(font_dct['chn_strict'])
                 else:
                     font_path = random.choice(font_dct['chn'])
