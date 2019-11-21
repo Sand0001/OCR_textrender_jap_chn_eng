@@ -953,16 +953,21 @@ class Renderer(object):
 
     def choose_font(self,language,word ,font_dct):
         if language == 'eng':
-            if '=' in word:
+            if '=' in word :
                 font_path = random.choice(font_dct['eng_strict'])
             else:
+
+                #font_path = random.choice(random.choice([font_dct['chn'],font_dct['jap']]))
 
                 font_path = random.choice(font_dct['eng'])
         else:
             if language == 'jap':
                 font_path = random.choice(font_dct['jap'])
             else:
-                font_path = random.choice(font_dct['chn'])
+                if ',' in word:
+                    font_path = random.choice(font_dct['chn_strict'])
+                else:
+                    font_path = random.choice(font_dct['chn'])
         return font_path
     @retry
     def pick_font(self, img_index):
@@ -1017,6 +1022,7 @@ class Renderer(object):
             #'Lato-Black.ttf''FFF_Tusj.ttf'
             #font_path = '/fengjing/data_script/OCR_textrender/data/eng/PSL-ChamnarnBold.ttf'
             #font_path = '/Users/feng/Downloads/新日语字体/ShinGoPr6-Regular'
+            #font_path = '/fengjing/data_script/OCR_textrender/data/fonts/eng/Sansation-Light.ttf'
             font_name = os.path.basename(font_path)
             if 'Capture_it.ttf' in font_path:
                 word = word.upper()
@@ -1025,7 +1031,7 @@ class Renderer(object):
             font_little_size= np.random.randint(font_size//2-1,font_size//2+1)
             font_little = ImageFont.truetype(font_path, font_little_size)
             #word = 'ワクチン接種後免疫あり'
-            #word = word+'-A='
+            #word = '1.33 .,ku '
             return word, font, self.get_word_size(font, word),font_little,language,font_name
 
         except Exception as e:
