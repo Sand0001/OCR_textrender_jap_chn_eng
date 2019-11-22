@@ -52,6 +52,7 @@ class Renderer(object):
 
         self.show = False
         self.showEffect = True
+        self.random_symbel = True
 
     def start(self):
         return time.time()
@@ -60,7 +61,13 @@ class Renderer(object):
         return
         #print(msg + " took {:.3f}s".format(time.time() - t))
 
-
+    def prob(self, probability):
+        r = random.randint(0, 100)
+        #print ("Prob : ", r)
+        if r <= probability * 100:
+            return True
+        else:
+            return False
     def plt_show_list (self,word_img, text_box_pnts_list = None, title = None):
         test_img = np.clip(word_img, 0., 255.)
         i = 0
@@ -508,7 +515,7 @@ class Renderer(object):
             # if apply(self.cfg.seamless_clone):
             #     np_img = self.draw_text_seamless(font, bg, word, word_color, word_height, word_width, offset)
             # else:
-                self.draw_text_wrapper(draw, word, text_x - offset[0], text_y - offset[1], font, word_color)
+                word_width = self.draw_text_wrapper(draw, word, text_x - offset[0], text_y - offset[1], font, word_color)
                 # draw.text((text_x - offset[0], text_y - offset[1]), word, fill=word_color, font=font)
 
                 np_img = np.array(pil_img).astype(np.float32)
@@ -516,7 +523,7 @@ class Renderer(object):
             str_list_left = '《〈【〔「'
 
             str_list_right = '》！？〉】〕」：】。、'
-            if word[-1] in str_list_right:
+            if word[-1] in str_list_right :
             #if word[-1] == '。' or word[-1] == '、':
                 tmp_right_offset = np.random.randint(font.size//3,font.size//3*2)
                 word_width = word_width-tmp_right_offset
@@ -660,8 +667,6 @@ class Renderer(object):
         np_img = cv2.cvtColor(mixed_clone, cv2.COLOR_BGR2GRAY)
 
         return np_img
-
-
     def draw_text_with_random_space(self, draw, font, word, word_color, bg_width, bg_height):
         """ If random_space applied, text_x, text_y, word_width, word_height may change"""
         width = 0
@@ -708,9 +713,27 @@ class Renderer(object):
         if apply(self.cfg.text_border):
             self.dmsg ("draw border")
             self.draw_border_text(draw, text, x, y, font, text_color)
+            width = self.get_word_size(font, text)[0]
         else:
 
-            draw.text((x, y), text, fill=text_color, font=font)
+            if '、'in text[:-1] and self.random_symbel and self.prob(0.35):
+                self.random_symbel = True
+                text_list = text[:-1].split('、')
+                width = x
+                for index,t in enumerate(text_list):
+                    if index != len(text_list)-1:
+                        draw.text((width, y), t+'、', fill=text_color, font=font)
+                        width += font.getsize(t)[0] + random.randint(font.getsize('、')[0]//2,font.getsize('、')[0]) - font.getoffset('、')[0]
+                    else:
+                        draw.text((width, y), t , fill=text_color, font=font)
+                        width += font.getsize(t)[0]
+                draw.text((width, y), text[-1], fill=text_color, font=font)
+                width += font.getsize(text[-1])[0] - x
+            else:
+                draw.text((x, y), text, fill=text_color, font=font)
+                width = self.get_word_size(font,text)[0]
+        return width
+
     def draw_text_add_script_ori(self,draw, text, x, y, font, text_color,font_little):
         word_start = x
         word_height = 0
@@ -777,9 +800,6 @@ class Renderer(object):
                               font=font)
                     x += font.getsize(text[start_index:])[0]
                     word_height = max(word_height, font.getsize(text[start_index:])[1])
-
-
-
             elif text[i] == '▿' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[i + 1])) != 0:
                 draw.text((x, y + int(font_little.size) + random_offset + 1), text[i + 1], fill=text_color,
                           font=font_little)
@@ -793,49 +813,7 @@ class Renderer(object):
                     x += font.getsize(text[start_index:])[0]
                     word_height = max(word_height, font.getsize(text[start_index:])[1])
 
-
-
-            #start_index = tmp_script_index
-
-
-
-
-
-        # for index, t in enumerate(text):
-        #
-        #     if t == '▵' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0:  # 判定上角标
-        #         draw.text((x, y + random_offset), text[index + 1], fill=text_color, font=font_little)
-        #         x += font_little.getsize(text[index + 1])[0]
-        #         word_height = max(word_height,
-        #                           font_little.getsize(text[index + 1])[1] - font_little.getoffset(text[index + 1])[1])
-        #     elif t == '▿' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[index + 1])) != 0:  # 判定下角标
-        #         draw.text((x, y + int(font_little.size) + random_offset + 1), text[index + 1], fill=text_color,
-        #                   font=font_little)
-        #         x += font_little.getsize(text[index + 1])[0]
-        #         word_height = max(word_height, int(font_little.size) + 1 + font_little.getsize(text[index + 1])[1])
-        #
-        #     else:
-        #         if (text[index - 1] == '▵' or text[index - 1] == '▿') and len(
-        #                 re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(t)) != 0:
-        #             continue
-        #         draw.text((x, y + random_offset), t, fill=text_color, font=font)
-        #         # mask, offset = font.getmask2(t, draw.mode)
-        #         x += font.getsize(t)[0]
-        #         # x += offset[0]
-        #         if t == '_':
-        #             tmp_word_height = font.getsize(t)[1] - font.getoffset(t)[1]
-        #             if tmp_word_height < word_height:
-        #
-        #                 word_height = max(word_height, font.getsize(t)[1])
-        #             else:
-        #                 word_height = max(word_height, font.getsize(t)[1] - font.getoffset(t)[1])
-        #
-        #         else:
-        #             word_height = max(word_height, font.getsize(t)[1])
         return x - word_start, word_height
-
-
-
 
     def draw_border_text(self, draw, text, x, y, font, text_color):
         """
@@ -984,26 +962,10 @@ class Renderer(object):
             else:
                 word, language = self.corpus.get_sample(img_index)
 
-            #word = '[+/- 　RD] KpH, 7.01 +　2'
-            #if word is None:
-            #word = '有粘性物质（O~1，0E-'
-            # language = 'eng'
-            # word = 'jap_YuGothic=Bold.otf'
             if self.clip_max_chars and len(word) > self.max_chars:
                 word = word[:self.max_chars]
             font_dct = self.fonts
-            #word = word+'_'
-
             font_path = self.choose_font(language, word, font_dct)
-            # for i in range(10):
-            #     if ('-' or'—' or '–' or '=' in word) and ('walkway'in font_path.lower()
-            #                                               or 'raleway' in font_path.lower()
-            #                                               or 'courier' in font_path.lower()) :
-            #         # print('.............')
-            #         font_path = self.choose_font(language, font_dct)
-            #     else:
-            #         break
-            #if '　' not in word:
 
             if self.strict:
                 unsupport_chars = self.font_unsupport_chars[font_path]
@@ -1017,21 +979,15 @@ class Renderer(object):
 
             # Font size in point
             font_size = random.randint(self.cfg.font_size.min, self.cfg.font_size.max)
-            #print(word,font_path)
-            #print(font_path)
-            #'Lato-Black.ttf''FFF_Tusj.ttf'
-            #font_path = '/fengjing/data_script/OCR_textrender/data/eng/PSL-ChamnarnBold.ttf'
-            #font_path = '/Users/feng/Downloads/新日语字体/ShinGoPr6-Regular'
-            #font_path = '/fengjing/data_script/OCR_textrender/data/fonts/eng/Sansation-Light.ttf'
+            #font_path = '/fengjing/data_script/OCR_textrender/data/fonts/chn/STHeiti Medium.ttc'
             font_name = os.path.basename(font_path)
             if 'Capture_it.ttf' in font_path:
                 word = word.upper()
-
+            if 'STHeiti'.lower() in font_path.lower():
+                self.random_symbel = False
             font = ImageFont.truetype(font_path, font_size)
             font_little_size= np.random.randint(font_size//2-1,font_size//2+1)
             font_little = ImageFont.truetype(font_path, font_little_size)
-            #word = 'ワクチン接種後免疫あり'
-            #word = '1.33 .,ku '
             return word, font, self.get_word_size(font, word),font_little,language,font_name
 
         except Exception as e:
@@ -1070,6 +1026,7 @@ class Renderer(object):
 
     def apply_seamless_cloe_add_foreground(self,img1):
         tmp_name = '/data1/fengjing/output/tmp/' + str(time.time()+random.random()) +'.jpg'
+        #tmp_name = '/fengjing/data_script/OCR_textrender/output/tmp/' +'1.jpg'
         cv2.imwrite(tmp_name,img1)
         img1 = cv2.imread(tmp_name)
 
