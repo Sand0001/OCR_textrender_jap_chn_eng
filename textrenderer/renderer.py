@@ -715,15 +715,41 @@ class Renderer(object):
             self.draw_border_text(draw, text, x, y, font, text_color)
             width = self.get_word_size(font, text)[0]
         else:
+        #     width = x
+        #     text_tmp = ''
+        #     zhong_symbol_right = '》！？〉】〕」：】。、'
+        #     zhong_symbol_left = '《〈【〔「'
+        #     for t in text[:-2]:
+        #         print(t)
+        #         if t not in zhong_symbol_right and t not in zhong_symbol_left:
+        #             text_tmp+=t
+        #         else:
+        #             if t in zhong_symbol_right:
+        #                 text_tmp += t
+        #                 draw.text((width, y), text_tmp, fill=text_color, font=font)
+        #                 width += font.getsize(text_tmp[:-1])[0] + font.getsize(text_tmp[-1])[0]//2
+        #             else:
+        #                 draw.text((width, y), text_tmp, fill=text_color, font=font)
+        #                 width += font.getsize(text_tmp)[0] - font.getsize(t)[0] // 2
+        #                 draw.text((width, y), t, fill=text_color, font=font)
+        #                 width += font.getsize(t)[0] // 2
+        #             text_tmp = ''
+        #         if text_tmp != '':
+        #             draw.text((width, y), text_tmp, fill=text_color, font=font)
+        #             width += font.getsize(text_tmp)[0]-x
+        #         # width += font.getsize(text[-1])[0] - x
+        # return width
 
-            if '、'in text[:-1] and self.random_symbel and self.prob(0.35):
-                self.random_symbel = True
+            if '、'in text[:-1]  and self.prob(1) and 'Heiti'.upper() not in font.getname()[0].upper():
+
+                #self.random_symbel = True
                 text_list = text[:-1].split('、')
                 width = x
                 for index,t in enumerate(text_list):
                     if index != len(text_list)-1:
                         draw.text((width, y), t+'、', fill=text_color, font=font)
                         width += font.getsize(t)[0] + random.randint(font.getsize('、')[0]//2,font.getsize('、')[0]) - font.getoffset('、')[0]
+                        #width += font.getsize(t)[0] + font.getsize('、')[0] // 2
                     else:
                         draw.text((width, y), t , fill=text_color, font=font)
                         width += font.getsize(t)[0]
@@ -983,8 +1009,7 @@ class Renderer(object):
             font_name = os.path.basename(font_path)
             if 'Capture_it.ttf' in font_path:
                 word = word.upper()
-            if 'STHeiti'.lower() in font_path.lower():
-                self.random_symbel = False
+            # word = '上海。北京、《附件？上海、北京、'
             font = ImageFont.truetype(font_path, font_size)
             font_little_size= np.random.randint(font_size//2-1,font_size//2+1)
             font_little = ImageFont.truetype(font_path, font_little_size)
