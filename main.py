@@ -79,9 +79,9 @@ def generate_img(img_index, q=None):
     np.random.seed()
     im, word,font_name = gen_img_retry(renderer, img_index)
 
-    #base_name = '{:08d}'.format(img_index)+'_'+font_name.replace(' ','_').split('.')[0]
+    base_name = '{:08d}'.format(img_index)+'_'+font_name.replace(' ','_').split('.')[0]
     #print ("Generate Image : ", img_index)
-    base_name = '{:08d}'.format(img_index)
+    #base_name = '{:08d}'.format(img_index)
 
     if not flags.viz:
         fname = os.path.join(flags.save_dir, base_name + '.jpg')

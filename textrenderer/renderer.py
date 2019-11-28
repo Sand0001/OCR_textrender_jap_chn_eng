@@ -493,20 +493,14 @@ class Renderer(object):
         draw = ImageDraw.Draw(pil_img)
         if self.show:
             self.plt_show(bg, title = 'bg')
-        #text_x = random.randint(50, bg_width - word_width - 50)
-        #text_y = random.randint(50, bg_height - word_height - 50)
-
-        #print ("BG_H_W : ( ", bg_height, bg_width,  ")", " Offset : (" , offset , ")", " WordSize : (", word_size, ")", "Text_x", text_x, "Text_y", text_y)
         #Draw text in the center of bg
         text_x = int((bg_width - word_width) / 2)
         text_y = int((bg_height - word_height) / 2)
         if self.show:
             print ("BG_H_W : ( ", bg_height, bg_width,  ")", " Offset : (" , offset , ")", " WordSize : (", word_size, ")", "Text_x", text_x, "Text_y", text_y)
         word_color = self.get_word_color(bg, text_x, text_y, word_height, word_width)
-
         if word_color is None:
             raise Exception
-
         if apply(self.cfg.random_space):
             text_x, text_y, word_width, word_height = self.draw_text_with_random_space(draw, font, word, word_color,
                                                                                        bg_width, bg_height)
@@ -946,19 +940,19 @@ class Renderer(object):
             if '=' in word :
                 font_path = random.choice(font_dct['eng_strict'])
             else:
-
-                #font_path = random.choice(random.choice([font_dct['chn'],font_dct['jap']]))
-
                 font_path = random.choice(font_dct['eng'])
         else:
             if language == 'jap':
                 font_path = random.choice(font_dct['jap'])
             else:
                 if ',' in word or ';' in word:
+                    print('在里面呢')
                     font_path = random.choice(font_dct['chn_strict'])
                 else:
+                    print('不在')
                     font_path = random.choice(font_dct['chn'])
         return font_path
+
     @retry
     def pick_font(self, img_index):
         """
@@ -969,14 +963,13 @@ class Renderer(object):
         """
         try:
             if apply(self.cfg.add_script):
-
                 word, language = self.corpus.get_sample_add_script(img_index)
             else:
                 word, language = self.corpus.get_sample(img_index)
-
             if self.clip_max_chars and len(word) > self.max_chars:
                 word = word[:self.max_chars]
             font_dct = self.fonts
+            #word = ', lal，l。a; lala: la；la.aaa'
             font_path = self.choose_font(language, word, font_dct)
 
             if self.strict:
@@ -988,7 +981,6 @@ class Renderer(object):
                         print('Retry pick_font(), \'%s\' contains chars \'%s\' not supported by font %s' % (
                             word, c, font_path))
                         raise Exception
-
             # Font size in point
             font_size = random.randint(self.cfg.font_size.min, self.cfg.font_size.max)
             #font_path = '/fengjing/data_script/OCR_textrender/data/fonts/chn/STHeiti Medium.ttc'
@@ -996,6 +988,7 @@ class Renderer(object):
             if 'Capture_it.ttf' in font_path:
                 word = word.upper()
             #word = '上海。北京、《附。件？上海、北）京、'
+
             font = ImageFont.truetype(font_path, font_size)
             font_little_size= np.random.randint(font_size//2-1,font_size//2+1)
             font_little = ImageFont.truetype(font_path, font_little_size)
@@ -1023,11 +1016,11 @@ class Renderer(object):
         return size
 
     def gray2rgb(self, imggray):
-        # 原图 R G 通道不变，B 转换回彩图格式
-        # R = rgb[:, :, 0]
-        # G = rgb[:, :, 1]
-        # B = ((imggray) - 0.299 * R - 0.587 * G) / 0.114
-        #rgb_img = np.ones(imggray.shape)
+        '''
+
+        :param imggray:
+        :return:
+        '''
         rgb_img = np.zeros((imggray.shape[0],imggray.shape[1],3))
         rgb_img[:, :, 2] = imggray
         rgb_img[:, :, 0] = imggray
@@ -1036,40 +1029,18 @@ class Renderer(object):
         return rgb_img
 
     def apply_seamless_cloe_add_foreground(self,img1):
+        '''
+
+        :param img1:
+        :return:
+        '''
         tmp_name = '/data1/fengjing/output/tmp/' + str(time.time()+random.random()) +'.jpg'
         #tmp_name = '/fengjing/data_script/OCR_textrender/output/tmp/' +'1.jpg'
         cv2.imwrite(tmp_name,img1)
         img1 = cv2.imread(tmp_name)
-
-        #img1 = cv2.cvtColor(img1_bg,cv2.COLOR_BGR2GRAY)
-        #img1_bg = cv2.cvtColor(img1, cv2.COLOR_GRAY2RGB)
-        #img1_bg = self.gray2rgb(img1)
-
-        #
-        # plt.figure('after img1')
-        # plt.imshow(img1_bg)
-        # plt.show()
-        # plt.figure('1')
-        # plt.imshow(img1)
-        # plt.show()
-        # opencv seamlessClone require bgr image
-        #text_img_bgr = np.ones((img1.shape[0], img1.shape[1], 3), np.uint8)
-        #bg_bgr = np.ones((img1.shape[0], img1.shape[1], 3), np.uint8)
-        #cv2.cvtColor(text_img, cv2.COLOR_GRAY2BGR, text_img_bgr)
-
-        #img1 = bg_bgr
-
         img2  = random.choice(self.fgs)
         height, width = img1.shape[0:2]
-        #print('img1 shape', img1.shape)
-
-        # img2 = cv2.resize(img2,(img2.shape[1],img2.shape[0]))
         height_2, width_2 = img2.shape[0:2]
-        #print('img ori shape', img2.shape)
-        # random crop
-        # img2 = img2[:random.randint(0,min(width,width_2)),:random.randint(0,min(height,height_2))]
-
-        # img2 = img2[random.randint(0, min(width_2,width))]
         # 最大crop img 的宽高
         crop_max_width = min(width, width_2)
         crop_max_height = min(height_2, height)
@@ -1079,43 +1050,28 @@ class Renderer(object):
         # crop img 随机裁剪的位置
         crop_x = random.randint(0, crop_max_width - crop_width)
         crop_y = random.randint(0, crop_max_height - crop_height)
-
         crop_img = img2[crop_y:crop_y + crop_height, crop_x:crop_x + crop_width]
-
         crop_h, crop_w = crop_img.shape[0:2]
-        #print('crop_h,crop_w', crop_h, crop_w)
         # 随机x，y 框放的位置
         range_x = random.randint(0, width - crop_w)
         range_y = random.randint(0, height - crop_h)
 
         # 由随机xy 计算center
         center = (range_x + crop_w // 2, range_y + crop_h // 2)
-
         mask = 255 * np.ones(crop_img.shape, crop_img.dtype)
-        # plt.figure('crop img')
-        # plt.imshow(crop_img)
-        # plt.show()
-
-        # img1_bg = cv2.imread('/fengjing/data_script/OCR_textrender/output/default/00000000_Lato-Light.jpg')
-        # img1_bg = cv2.resize(img1_bg,(img1.shape[1],img1.shape[0]))
         mixed_clone = cv2.seamlessClone(crop_img, img1, mask, (center[0], center[1]), cv2.MIXED_CLONE)
-
         ret, binary = cv2.threshold(~crop_img[:, :, 2], 30, 255, cv2.THRESH_BINARY)
         mask_coor = np.argwhere(binary > 200)
 
         for i in mask_coor:
             try:
-                # print(i)
                 img1[range_y + i[0], range_x + i[1]] = mixed_clone[range_y + i[0], range_x + i[1]]
             except Exception as e:
                 print(e)
-
                 continue
 
 
         np_img = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
-        #cv2.imwrite('/fengjing/data_script/OCR_textrender/output/default/11.jpg', mixed_clone)
-        #np_img = mixed_clone
         return np_img
     def apply_perspective_transform(self, img, text_box_pnts, max_x, max_y, max_z, gpu=False):
         """
