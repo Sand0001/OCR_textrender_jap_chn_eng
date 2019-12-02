@@ -94,8 +94,22 @@ class Renderer(object):
             plt.title(title,fontsize='large',fontweight='bold')
         plt.imshow(test_img)
         plt.show()
-  
 
+    def stretch_img_w(self, img, text_box_pnts):
+        '''
+        宽度方向进行拉伸
+        '''
+        min = self.cfg.stretch.min
+        max = self.cfg.stretch.max
+        scale = np.random.uniform(min, max)
+
+
+        img = cv2.resize(img, None, fx=scale, fy=1.0, interpolation=cv2.INTER_CUBIC)
+        text_box_pnts[0][0] = int(text_box_pnts[0][0] * scale)
+        text_box_pnts[1][0] = int(text_box_pnts[1][0] * scale)
+        text_box_pnts[2][0] = int(text_box_pnts[2][0] * scale)
+        text_box_pnts[3][0] = int(text_box_pnts[3][0] * scale)
+        return img, text_box_pnts
 
     def gen_img(self, img_index):
         t = self.start()
@@ -129,6 +143,10 @@ class Renderer(object):
         #print ("Before Apply", word_size, word_img.shape)
         self.dmsg("After draw_text_on_bg")
         t = self.start()
+
+        if (apply(self.cfg.stretch)):
+            word_img, text_box_pnts = self.stretch_img_w(word_img, text_box_pnts)
+
         if apply(self.cfg.crop):
             text_box_pnts = self.apply_crop(text_box_pnts, self.cfg.crop)
         self.end(t, "apply crop ")
@@ -946,10 +964,9 @@ class Renderer(object):
                 font_path = random.choice(font_dct['jap'])
             else:
                 if ',' in word or ';' in word:
-                    print('在里面呢')
+
                     font_path = random.choice(font_dct['chn_strict'])
                 else:
-                    print('不在')
                     font_path = random.choice(font_dct['chn'])
         return font_path
 
