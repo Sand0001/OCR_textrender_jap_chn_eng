@@ -420,8 +420,9 @@ class EngCorpus(Corpus):
                         add_scripts+='▵)'
                     if add_scripts.count('▿(')%2 ==1:
                         add_scripts+='▿)'
-                if word_lsit[subscript_index]!= ' ':
-                    word_lsit[subscript_index] = word_lsit[subscript_index] + add_scripts
+                if subscript_index+1 < len(word_lsit):
+                    if word_lsit[subscript_index]!= ' ' and word_lsit[subscript_index+1] != ' ': # 前后不能都是空格
+                        word_lsit[subscript_index] = word_lsit[subscript_index] + add_scripts
             word = ''.join(word_lsit)
         # print('word',word)
         return word.strip(' '), language

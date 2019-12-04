@@ -44,6 +44,7 @@ class Renderer(object):
         self.remaper = Remaper(cfg)
 
         self.create_kernals()
+        self.p1 = self.polyfit()
 
         if self.strict:
 
@@ -53,6 +54,13 @@ class Renderer(object):
         self.show = False
         self.showEffect = True
         self.random_symbel = True
+
+    def polyfit(self):
+        x = np.array([i for i in range(22, 48) if i % 2 == 0])
+        y1 = np.array([12, 15, 16, 17, 19, 20, 21, 22, 23, 26, 27, 28, 29])
+        f1 = np.polyfit(x, y1, 2)
+        p1 = np.poly1d(f1)
+        return p1
 
     def start(self):
         return time.time()
@@ -165,6 +173,7 @@ class Renderer(object):
         if apply(self.cfg.seamless_clone):  #seal 做前景融合
             word_img = self.apply_seamless_cloe_add_foreground(word_img)
 
+
         if self.debug:
             word_img = draw_box(word_img, text_box_pnts, (0, 255, 155))
         if self.show:
@@ -223,6 +232,7 @@ class Renderer(object):
             self.end(t, "apply crop_img ")
             self.dmsg("After crop_img")
 
+
         if apply(self.cfg.noise):
             word_img = np.clip(word_img, 0., 255.)
             word_img = self.noiser.apply(word_img)
@@ -235,11 +245,12 @@ class Renderer(object):
 
         blured = False
         if apply(self.cfg.blur):
-            blured = True
-            word_img = self.apply_blur_on_output(word_img, lock)
-            self.dmsg("After blur")
-            if self.show:
-                self.plt_show(word_img, title = 'After blur')
+            if not (('▵' in word) or ('▿' in word)):
+                blured = True
+                word_img = self.apply_blur_on_output(word_img, lock)
+                self.dmsg("After blur")
+                if self.show:
+                    self.plt_show(word_img, title = 'After blur')
 
         prydown_scale = 1.0
         if not blured:
@@ -281,7 +292,8 @@ class Renderer(object):
 
         
         if apply(self.cfg.erode) and prydown_scale < 1.3:
-            word_img = self.add_erode(word_img)
+
+            word_img = self.add_erode(word_img,font,word)
             if self.show:
                 self.plt_show(word_img, title = 'After erode')
 
@@ -797,7 +809,7 @@ class Renderer(object):
     def draw_text_add_script(self, draw, text, x, y, font, text_color, font_little):
         word_start = x
         word_height = 0
-        random_offset = 0  # np.random.randint(-1,1)
+        random_offset = np.random.randint(-1,2)
         start_index = 0
         random_offset_script = np.random.randint(-1,1)
         tmp_script_index_list = [i.start() for i in re.compile('▿|▵').finditer(text)]
@@ -825,10 +837,11 @@ class Renderer(object):
                     x += font.getsize(text[start_index:])[0]
                     word_height = max(word_height, font.getsize(text[start_index:])[1])
             elif text[i] == '▿' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[i + 1])) != 0:
-                draw.text((x, y + int(font_little.size) + random_offset + 1), text[i + 1], fill=text_color,
+                place_y = y + int(font.size)//2 + random_offset + 1
+                draw.text((x,place_y ), text[i + 1], fill=text_color,
                           font=font_little)
                 x += font_little.getsize(text[i + 1])[0]
-                word_height = max(word_height, int(font_little.size) + 1 + font_little.getsize(text[i + 1])[1])
+                word_height = max(word_height, place_y - y + font_little.getsize(text[i + 1])[1])
                 start_index = i+2
                 if index == len(tmp_script_index_list)-1:
                     #tmp_script_index = i+1
@@ -970,6 +983,11 @@ class Renderer(object):
                     font_path = random.choice(font_dct['chn'])
         return font_path
 
+    def get_font_little_size(self,font_size):
+        font_little_size = int(self.p1(font_size))
+        font_little_size = np.random.randint(font_little_size - 1, font_little_size+2)
+        return font_little_size
+
     @retry
     def pick_font(self, img_index):
         """
@@ -1007,7 +1025,7 @@ class Renderer(object):
             #word = '上海。北京、《附。件？上海、北）京、'
 
             font = ImageFont.truetype(font_path, font_size)
-            font_little_size= np.random.randint(font_size//2-1,font_size//2+1)
+            font_little_size= self.get_font_little_size(font_size)
             font_little = ImageFont.truetype(font_path, font_little_size)
             return word, font, self.get_word_size(font, word),font_little,language,font_name
 
@@ -1121,8 +1139,9 @@ class Renderer(object):
 
         return dst_img, dst_img_pnts, dst_text_pnts
 
-    def apply_blur_on_output(self, img, lock = None):
-        if prob(0.5):
+    def apply_blur_on_output(self, img,word, lock = None):
+        #if prob(0.5):
+        if prob(1):
             self.dmsg ("-*- APPLY blured 3,5 ")
             return self.apply_gauss_blur(img, [1, 2], lock = lock)
         else:
@@ -1130,8 +1149,10 @@ class Renderer(object):
             return self.apply_norm_blur(img)
 
     def apply_gauss_blur(self, img, ks=None, lock=None):
-        if ks is None:
+        if ks is None :
+
             ks = [7, 9, 11, 13]
+
         ksize = random.choice(ks)
 
         sigmas = [0, 1, 2, 3, 4, 5, 6, 7]
@@ -1222,9 +1243,14 @@ class Renderer(object):
         return croped_text_box_pnts
 
 
-    def add_erode(self, img):
-    
-        radius = random.randint(1,2)
+    def add_erode(self, img,font,word):
+        if  ('▵' in word) or ('▿' in word):
+            return img
+        if 'thin' in font.getname()[0].lower() :
+
+            radius = 1
+        else:
+            radius = random.randint(1,2)
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(radius, radius))
         #return cv2.morphologyEx(img, cv2.MORPH_GRADIENT, kernel)
         img = cv2.dilate(img,kernel)
