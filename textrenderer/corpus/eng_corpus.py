@@ -347,7 +347,7 @@ class EngCorpus(Corpus):
     def get_scripts(self,on_left = False):
 
         scripts = random.choice([self.down_subscript_list, self.up_subscript_list])
-
+        scripts_word = ['▵s▵t','▵r▵d','▵n▵d','▵t▵h','▵T▵M']
         gen_method = np.random.randint(0, 9)
         if gen_method == 1:
             add_scripts = random.choice(self.sub_scripts_num)
@@ -357,6 +357,9 @@ class EngCorpus(Corpus):
             add_scripts = random.choice(self.super_scripts_num_1)
         elif gen_method == 4:
             add_scripts = random.choice(self.super_scripts_num_2)
+        elif gen_method == 5:
+            add_scripts = random.choice(scripts_word)
+
         else:
             add_scripts = ''
             num_list = [1, 1, 2, 2, 3, 4]
