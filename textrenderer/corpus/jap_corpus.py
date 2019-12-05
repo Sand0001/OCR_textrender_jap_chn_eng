@@ -288,6 +288,67 @@ class JAPCorpus(Corpus):
         return word.strip(' '), language
 
 
+    def get_scripts(self,on_left = False):
+
+        scripts = random.choice([self.down_subscript_list, self.up_subscript_list])
+
+        gen_method = np.random.randint(0, 9)
+        if gen_method == 1:
+            add_scripts = random.choice(self.sub_scripts_num)
+        elif gen_method == 2:  # self.super_scripts_num_1
+            add_scripts = random.choice(self.super_scripts_num)
+        elif gen_method == 3:
+            add_scripts = random.choice(self.super_scripts_num_1)
+        elif gen_method == 4:
+            add_scripts = random.choice(self.super_scripts_num_2)
+        else:
+            add_scripts = ''
+            num_list = [1, 1, 2, 2, 3, 4]
+            num = random.choice(num_list)  # 随机放置几个连续角标
+            one_more_time = True
+            for i in range(num):
+                tmp_script = np.random.choice(scripts)
+                if ')' in tmp_script and ('(' not in add_scripts) and (i != num - 1):
+                    continue
+                if tmp_script in self.scripts_symbol:
+                    one_more_time = False
+                if one_more_time:
+
+                    add_scripts += np.random.choice(scripts)
+                else:
+                    if tmp_script not in self.scripts_symbol:
+                        add_scripts += np.random.choice(scripts)
+            if add_scripts.count('▵(') % 2 == 1:
+                add_scripts += '▵)'
+            if add_scripts.count('▿(') % 2 == 1:
+                add_scripts += '▿)'
+
+        if on_left:
+            add_scripts = add_scripts.replace('▵+','')
+            add_scripts = add_scripts.replace('▵-', '')
+            add_scripts = add_scripts.replace('▿+', '')
+            add_scripts = add_scripts.replace('▿-', '')
+            if self.prob(0.85) and '▿' in add_scripts:
+                add_scripts = ''
+        return add_scripts
+
+    def get_scripts_index_list(self,word_list):
+        subscript_index_list = []
+        for i in range(np.random.randint(3)):  # 随机取放置角标位置
+            tmp_i = np.random.randint(0, len(word_list))
+            if tmp_i not in subscript_index_list:  # 避免出现重复位置
+                subscript_index_list.append(tmp_i)
+        return subscript_index_list
+
+    def get_word_list_index_value(self,word_list,subscript_index):
+        if np.random.randint(1, 7) == 1:
+            add_scripts = self.get_scripts(on_left=True)
+            return add_scripts + word_list[subscript_index]
+        else:
+            add_scripts = self.get_scripts()
+            return word_list[subscript_index] + add_scripts
+
+
     def get_sample_add_script(self, img_index):
         # 每次 gen_word，随机选一个预料文件，随机获得长度为 word_length 的字符
 
@@ -341,56 +402,38 @@ class JAPCorpus(Corpus):
         #print (line[0:10], language)
         #word = line[start:start + length]
         #不能让文本的开始和结束有空格的出现
-        if (language == 'eng' and self.prob(0.4) ) or (language == 'jap' and self.prob(0.01) ):
+        if (language == 'eng' and self.prob(0.02) ) or (language == 'jap' and self.prob(0.005) ):
         #if self.prob(0.4):
             #print(language)
             #  有一定的几率将word中的字母随机替换成角标
 
-            word_lsit = list(word)
-            subscript_index_list = []
-            for i in range(np.random.randint(3 )):  #随机取放置角标位置
-                tmp_i = np.random.randint(0,len(word_lsit))
-                if tmp_i not in subscript_index_list:   #避免出现重复位置
-                    subscript_index_list.append(tmp_i)
-            #subscript_index_list = np.random.randint(0, len(word_lsit), (np.random.randint(len(word_lsit) )))
-            #word = list(word)
+            if self.prob(0.2):
+                word_list = list(word)
+                subscript_index_list = []
+                for i in range(np.random.randint(3 )):  #随机取放置角标位置
+                    tmp_i = np.random.randint(0,len(word_list))
+                    if tmp_i not in subscript_index_list:   #避免出现重复位置
+                        subscript_index_list.append(tmp_i)
 
-            #print(add_scripts)
-            for subscript_index in subscript_index_list:
+                for subscript_index in subscript_index_list:
+                    if subscript_index + 1 < len(word_list):
+                        if word_list[subscript_index] != ' ' and word_list[subscript_index + 1] != ' ':  # 前后不能都是空格
+                            word_list[subscript_index] = self.get_word_list_index_value(word_list, subscript_index)
+                    else:
+                        word_list[subscript_index] = self.get_word_list_index_value(word_list, subscript_index )
+                word = ''.join(word_list)
+            else:
 
-                scripts = random.choice([self.down_subscript_list, self.up_subscript_list])
+                word_list = word.split(' ')
+                subscript_index_list = self.get_scripts_index_list(word_list)
 
-                gen_method= np.random.randint(0,9)
-                if gen_method == 1:
-                    add_scripts = random.choice(self.sub_scripts_num)
-                elif gen_method == 2:#self.super_scripts_num_1
-                    add_scripts = random.choice(self.super_scripts_num)
-                elif gen_method == 3:
-                    add_scripts = random.choice(self.super_scripts_num_1)
-                elif gen_method == 4:
-                    add_scripts = random.choice(self.super_scripts_num_2)
-                else:
-                    add_scripts = ''
-                    num_list = [1, 1, 2, 2, 3, 4]
-                    num = random.choice(num_list)  # 随机放置几个连续角标
-                    one_more_time = True
-                    for i in range(num):
-                        tmp_script = np.random.choice(scripts)
-                        if ')'  in tmp_script and ('(' not in add_scripts) and (i != num-1):
-                            continue
-                        if tmp_script in self.scripts_symbol:
-                            one_more_time = False
-                        if one_more_time:
-
-                            add_scripts += np.random.choice(scripts)
+                for subscript_index in subscript_index_list:
+                    if word_list[subscript_index] != '':
+                        aaa = ',.!;:'
+                        if word_list[subscript_index][-1] in aaa :
+                            if self.prob(0.1):
+                                word_list[subscript_index] = self.get_word_list_index_value(word_list,subscript_index)
                         else:
-                            if tmp_script not in self.scripts_symbol:
-                                add_scripts += np.random.choice(scripts)
-                    if add_scripts.count('▵(')%2 ==1:
-                        add_scripts+='▵)'
-                    if add_scripts.count('▿(')%2 ==1:
-                        add_scripts+='▿)'
-                if word_lsit[subscript_index]!= ' ':
-                    word_lsit[subscript_index] = word_lsit[subscript_index] + add_scripts
-            word = ''.join(word_lsit)
+                            word_list[subscript_index] = self.get_word_list_index_value(word_list, subscript_index)
+                word = ' '.join(word_list)
         return word.strip(' '), language
