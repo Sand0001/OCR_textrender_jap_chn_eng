@@ -52,6 +52,7 @@ class Renderer(object):
 
 
         self.show = False
+
         self.showEffect = True
         self.random_symbel = True
 
@@ -630,23 +631,23 @@ class Renderer(object):
             # else:                          #   目前只将subscript加入这里 seamless_clone和random_space里没有
                 #self.draw_text_wrapper(draw, word, text_x - offset[0], text_y - offset[1], font, word_color)
 
-                word_width,word_height = self.draw_text_add_script(draw, word, text_x - offset[0], text_y - offset[1], font, word_color,font_little)
+                word_width,word_height,text_y,text_x = self.draw_text_add_script(draw, word, text_x - offset[0], text_y - offset[1], font, word_color,font_little)
                 # draw.text((text_x - offset[0], text_y - offset[1]), word, fill=word_color, font=font)
 
                 np_img = np.array(pil_img).astype(np.float32)
 
-        # text_box_pnts = [
-        #     [text_x, text_y],
-        #     [text_x + word_width, text_y],
-        #     [text_x + word_width, text_y + word_height],
-        #     [text_x, text_y + word_height]
-        # ]
         text_box_pnts = [
-            [text_x - offset[0], text_y - offset[1]],
-            [text_x - offset[0] + word_width, text_y - offset[1]],
-            [text_x - offset[0] + word_width, text_y - offset[1] + word_height],
-            [text_x - offset[0], text_y - offset[1] + word_height]
+            [text_x, text_y],
+            [text_x + word_width, text_y],
+            [text_x + word_width, text_y + word_height],
+            [text_x, text_y + word_height]
         ]
+        # text_box_pnts = [
+        #     [text_x - offset[0], text_y - offset[1]],
+        #     [text_x - offset[0] + word_width, text_y - offset[1]],
+        #     [text_x - offset[0] + word_width, text_y - offset[1] + word_height],
+        #     [text_x - offset[0], text_y - offset[1] + word_height]
+        # ]
         #print('text_box_pnts_add_script',text_box_pnts)
         return np_img, text_box_pnts, word_color
 
@@ -769,6 +770,96 @@ class Renderer(object):
 
         return width
 
+    def find_superscript_y(self,y, text_char, superscript_char, font, font_little):
+
+        script_max_y = y + ((font.getsize(text_char)[1] - font.getoffset(text_char)[1]) // 3 * 2) + \
+                       font.getoffset(text_char)[1] - (font_little.getsize(superscript_char)[1]
+                       )  # 上标位置随机
+        script_min_y = y + font.getoffset(text_char)[1] - (font_little.getsize(superscript_char)[1]
+        )
+        if script_max_y <= script_min_y:
+            y_superscript = script_max_y
+        else:
+
+            y_superscript = np.random.randint(script_min_y, script_max_y)  # TODO  2有问题
+        return y_superscript
+
+    def finde_subscript_y(self,y, text_char, subscript_char, font, font_little):
+
+        script_min_y = y - ((font.getsize(text_char)[1] - font.getoffset(text_char)[1]) // 5 * 3) + \
+                       font.getsize(text_char)[1] - font_little.getoffset(subscript_char)[1]  # 上标位置随机
+        script_max_y = y + font.getsize(text_char)[1] - font_little.getoffset(subscript_char)[1]
+        if script_min_y >= script_max_y:
+            y_subscript = script_max_y
+        else:
+            y_subscript = np.random.randint(script_min_y, script_max_y)  # TODO  2有问题
+        return y_subscript
+
+    def draw_text_add_script(self,draw, text, x, y, font, text_color, font_little):
+        word_start = x
+        word_height = 0
+        random_offset = np.random.randint(-1, 2)
+        y = y + random_offset
+        start_index = 0
+        new_y_min = 10000
+        new_y_max = y
+        tmp_script_index_list = [i.start() for i in re.compile('▿|▵').finditer(text)]
+        print('tmp_script_index_list', tmp_script_index_list)
+        for index, i in enumerate(tmp_script_index_list):
+            tmp_script_index = i
+            draw.text((x, y), text[start_index:tmp_script_index], fill=text_color, font=font)  # 普通文本写在图片上
+            x += font.getsize(text[start_index:tmp_script_index])[0]
+            new_y_max = max(y + font.getsize(text[start_index:tmp_script_index])[1] , new_y_max)
+            new_y_min = min(y - font.getoffset(text[start_index:tmp_script_index])[1], new_y_min)
+
+            if text[start_index:tmp_script_index] != '':
+                test_char = text[start_index:tmp_script_index][-1]
+
+            if text[i] == '▵' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[i + 1])) != 0:
+                if index != 0 and text[tmp_script_index_list[index - 1]] == '▵':
+                    y_superscript = y_superscript
+                else:
+                    y_superscript = self.find_superscript_y(y, test_char, text[index + 1], font, font_little)
+
+                draw.text((x, y_superscript), text[i + 1], fill=text_color, font=font_little)
+                x += font_little.getsize(text[i + 1])[0]
+                new_y_min = min(y_superscript + font_little.getoffset(text[i + 1])[1], new_y_min)
+                new_y_max = max(y_superscript + font_little.getsize(text[i + 1])[1], new_y_max)
+                start_index = i + 2
+                if index == len(tmp_script_index_list) - 1:
+                    # tmp_script_index = i+1
+                    draw.text((x, y), text[start_index:], fill=text_color,
+                              font=font)
+                    x += font.getsize(text[start_index:])[0]
+                    new_y_max = max(y + font.getsize(text[start_index:])[1],
+                                    new_y_max)
+                    new_y_min = min(y - font.getoffset(text[start_index:])[1], new_y_min)
+            elif text[i] == '▿' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[i + 1])) != 0:
+                # 下标位置随机
+
+                if index != 0 and text[tmp_script_index_list[index - 1]] == '▿':
+                    y_subscript = y_subscript
+                else:
+                    y_subscript = self.finde_subscript_y(y, test_char[-1], text[index + 1], font, font_little)
+                new_y_min = min(y_subscript + font_little.getoffset(text[i + 1])[1], new_y_min)
+                new_y_max = max(y_subscript + font_little.getsize(text[i + 1])[1], new_y_max)
+
+                draw.text((x, y_subscript), text[i + 1], fill=text_color,
+                          font=font_little)
+                x += font_little.getsize(text[i + 1])[0]
+                start_index = i + 2
+                if index == len(tmp_script_index_list) - 1:
+                    # tmp_script_index = i+1
+                    draw.text((x, y), text[start_index:], fill=text_color,
+                              font=font)
+                    x += font.getsize(text[start_index:])[0]
+                    new_y_max = max(y + font.getsize(text[start_index:])[1] ,
+                                    new_y_max)
+                    new_y_min = min(y - font.getoffset(text[start_index:])[1], new_y_min)
+        word_height = new_y_max - new_y_min
+
+        return x - word_start, word_height, new_y_min, word_start
+
 
     def draw_text_add_script_ori(self,draw, text, x, y, font, text_color,font_little):
         word_start = x
@@ -806,51 +897,6 @@ class Renderer(object):
                     word_height = max(word_height,font.getsize(t)[1])
         return x-word_start,word_height
 
-    def draw_text_add_script(self, draw, text, x, y, font, text_color, font_little):
-        word_start = x
-        word_height = 0
-        random_offset = np.random.randint(-1,2)
-        start_index = 0
-        random_offset_script = np.random.randint(-1,1)
-        tmp_script_index_list = [i.start() for i in re.compile('▿|▵').finditer(text)]
-        for  index,i in enumerate( tmp_script_index_list):
-
-            #print('start_index',start_index)
-            tmp_script_index = i
-            #print('tmp_script_index', tmp_script_index)
-            draw.text((x, y + random_offset), text[start_index:tmp_script_index], fill=text_color, font=font)
-            x+=font.getsize(text[start_index:tmp_script_index])[0]
-            word_height = max(word_height, font.getsize(text[start_index:tmp_script_index])[1])
-            #elif index == len(tmp_script_index_list):
-
-            if text[i] == '▵' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[i + 1])) != 0:
-                draw.text((x, y + random_offset), text[i + 1], fill=text_color, font=font_little)
-                x += font_little.getsize(text[i + 1])[0]
-                word_height = max(word_height,
-                                  font_little.getsize(text[i + 1])[1] - font_little.getoffset(text[i + 1])[
-                                      1])
-                start_index = i + 2
-                if index == len(tmp_script_index_list)-1:
-                    #tmp_script_index = i+1
-                    draw.text((x, y + random_offset), text[start_index:], fill=text_color,
-                              font=font)
-                    x += font.getsize(text[start_index:])[0]
-                    word_height = max(word_height, font.getsize(text[start_index:])[1])
-            elif text[i] == '▿' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[i + 1])) != 0:
-                place_y = y + int(font.size)//2 + random_offset + 1
-                draw.text((x,place_y ), text[i + 1], fill=text_color,
-                          font=font_little)
-                x += font_little.getsize(text[i + 1])[0]
-                word_height = max(word_height, place_y - y + font_little.getsize(text[i + 1])[1])
-                start_index = i+2
-                if index == len(tmp_script_index_list)-1:
-                    #tmp_script_index = i+1
-                    draw.text((x, y + random_offset), text[start_index:], fill=text_color,
-                              font=font)
-                    x += font.getsize(text[start_index:])[0]
-                    word_height = max(word_height, font.getsize(text[start_index:])[1])
-
-        return x - word_start, word_height
 
     def draw_border_text(self, draw, text, x, y, font, text_color):
         """
