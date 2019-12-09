@@ -84,6 +84,9 @@ class EngCorpus(Corpus):
                                ('▿' not in i and i != '▵(' and i != '▵)' and i != '▵=' and i != '▵-' and i != '▵+')]
         self.super_scripts_num_2 = [i + '▵-' for i in self.up_subscript_list if
                                ('▿' not in i and i != '▵(' and i != '▵)' and i != '▵=' and i != '▵-' and i != '▵+')]
+        self.super_scripts_num_3 = ['10▵-▵' + str(i) for i in range(1,11)]
+
+
         # scripts_single = [i for i in scripts if
         #                   (i != '▵=' and i != '▿=' and i != '▿(' and i != '▿)' and i != '▵(' and i != '▵)')]
         # self.up_scripts_single = [i for i in self.up_subscript_list if i not in self.scripts_symbol]
@@ -353,7 +356,7 @@ class EngCorpus(Corpus):
     def get_scripts(self,on_left = False):
 
         scripts = random.choice([self.down_subscript_list, self.up_subscript_list])
-        scripts_word = ['1▵s▵t','3▵r▵d','2▵n▵d','4▵t▵h','▵T▵M','▵t▵h']
+        scripts_word = [' 1▵s▵t',' 3▵r▵d',' 2▵n▵d',' 4▵t▵h','▵T▵M','▵t▵h']
         gen_method = np.random.randint(0, 9)
         if gen_method == 1:
             add_scripts = random.choice(self.sub_scripts_num)
@@ -365,7 +368,8 @@ class EngCorpus(Corpus):
             add_scripts = random.choice(self.super_scripts_num_2)
         elif gen_method == 5:
             add_scripts = random.choice(scripts_word)
-
+        elif gen_method == 6:
+            add_scripts = random.choice(self.super_scripts_num_3)
         else:
             add_scripts = ''
             num_list = [1, 1, 2, 2, 3, 4]
@@ -426,7 +430,7 @@ class EngCorpus(Corpus):
                 r_i = random.randint(0, len(self.single_words_list) - 1)
                 word += self.single_words_list[r_i]
             return word,'eng'
-        language = np.random.choice(['eng','eng_ddcript'],p = [0.0,1])
+        language = np.random.choice(['eng','eng_ddcript'],p = [0.9,0.1])
         if self.corpus[0].language == language:
             corpus = self.corpus[0]
         else:
