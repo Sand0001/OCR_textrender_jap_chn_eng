@@ -91,6 +91,8 @@ class EngCorpus(Corpus):
         #print(self.subscript_list)
         print("Load up_subscripts List : ", len(self.up_subscript_list))
         print("Load down_subscripts List : ", len(self.down_subscript_list))
+
+
     def load_balanced_sample(self):
         self.single_words_list = []
         for line in open("./data/corpus/eng_single_word.dat"):
@@ -209,6 +211,8 @@ class EngCorpus(Corpus):
 
             self.probability = [len(l) / float(total_len) for l in self.corpus]
             '''
+
+
             # 在 crnn/libs/label_converter 中 encode 时还会进行过滤
             whole_line = ''.join(filter(lambda x: x in self.charsets, whole_line))
             # print (whole_line[0 : 500])
@@ -222,6 +226,8 @@ class EngCorpus(Corpus):
                     for index in range(0, len(whole_line)):
                         if whole_line[index] == ' ':
                             eng_whitespace_pos_list.append(index)
+                if 'script' in p:
+                    language = 'eng_script'
                 # 计算每个稀缺的字的位置
                 # self.mid_char_index_dct = {}
                 low_char_index_dct = {}
@@ -347,7 +353,7 @@ class EngCorpus(Corpus):
     def get_scripts(self,on_left = False):
 
         scripts = random.choice([self.down_subscript_list, self.up_subscript_list])
-        scripts_word = ['▵s▵t','▵r▵d','▵n▵d','▵t▵h','▵T▵M']
+        scripts_word = ['1▵s▵t','3▵r▵d','2▵n▵d','4▵t▵h','▵T▵M','▵t▵h']
         gen_method = np.random.randint(0, 9)
         if gen_method == 1:
             add_scripts = random.choice(self.sub_scripts_num)
@@ -420,8 +426,13 @@ class EngCorpus(Corpus):
                 r_i = random.randint(0, len(self.single_words_list) - 1)
                 word += self.single_words_list[r_i]
             return word,'eng'
+        language = np.random.choice(['eng','eng_ddcript'],p = [0.0,1])
+        if self.corpus[0].language == language:
+            corpus = self.corpus[0]
+        else:
+            corpus = self.corpus[1]
 
-        corpus = random.choice(self.corpus)
+        #corpus = random.choice(self.corpus)
         # print(corpus.content)
         # corpus = self.corpus[1]
 
@@ -471,5 +482,9 @@ class EngCorpus(Corpus):
                         else:
                             word_list[subscript_index] = self.get_word_list_index_value(word_list, subscript_index)
                 word = ' '.join(word_list)
+        if word[-1] =='▵' or word[-1] =='▿':
+            word = word[:-1]
+        if language == 'eng_script':
+            language = 'eng'
         return word.strip(' '), language
 
