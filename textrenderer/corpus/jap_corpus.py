@@ -116,6 +116,7 @@ class JAPCorpus(Corpus):
                                ('▿' not in i and i != '▵(' and i != '▵)' and i != '▵=' and i != '▵-' and i != '▵+')]
         self.super_scripts_num_2 = [i + '▵-' for i in self.up_subscript_list if
                                ('▿' not in i and i != '▵(' and i != '▵)' and i != '▵=' and i != '▵-' and i != '▵+')]
+        self.super_scripts_num_3 = ['10▵-▵' + str(i) for i in range(1, 11)]
 
         # print(self.subscript_list)
         print("Load up_subscripts List : ", len(self.up_subscript_list))
@@ -177,7 +178,7 @@ class JAPCorpus(Corpus):
             '''
             # 在 crnn/libs/label_converter 中 encode 时还会进行过滤
             #whole_line = ''.join([i for i in whole_line if i in self.chars])
-            whole_line = ''.join(filter(lambda x: x in self.chars, whole_line))
+            whole_line = ''.join(filter(lambda x: x in self.charsets, whole_line))
 
             
             if len(whole_line) > self.length:
@@ -189,6 +190,10 @@ class JAPCorpus(Corpus):
                     for index in range(0, len(whole_line)):
                         if whole_line[index] == ' ':
                             eng_whitespace_pos_list.append(index)
+
+
+                if 'script' in p:
+                    language = 'eng_script'
                 corpus = DIPCorpus()
                 corpus.content = whole_line
                 corpus.eng_whitespace_pos_list = eng_whitespace_pos_list
@@ -291,7 +296,7 @@ class JAPCorpus(Corpus):
     def get_scripts(self,on_left = False):
 
         scripts = random.choice([self.down_subscript_list, self.up_subscript_list])
-
+        scripts_word = [' 1▵s▵t', ' 3▵r▵d', ' 2▵n▵d', ' 4▵t▵h', '▵T▵M', '▵t▵h']
         gen_method = np.random.randint(0, 9)
         if gen_method == 1:
             add_scripts = random.choice(self.sub_scripts_num)
@@ -301,6 +306,10 @@ class JAPCorpus(Corpus):
             add_scripts = random.choice(self.super_scripts_num_1)
         elif gen_method == 4:
             add_scripts = random.choice(self.super_scripts_num_2)
+        elif gen_method == 5:
+            add_scripts = random.choice(scripts_word)
+        elif gen_method == 6:
+            add_scripts = random.choice(self.super_scripts_num_3)
         else:
             add_scripts = ''
             num_list = [1, 1, 2, 2, 3, 4]
@@ -368,7 +377,11 @@ class JAPCorpus(Corpus):
             #         word = ''.join(word)
             return word, 'jap'
 
-        corpus = random.choice(self.corpus)
+        language = np.random.choice(['jap', 'eng', 'eng_script'], p=[0.55, 0.4, 0.05])
+        for item in self.corpus:
+            if item.language == language:
+                corpus = item
+                break
         #减少一些英文的比例
         if corpus.language == 'eng' and  self.prob(0.2):
             corpus = random.choice(self.corpus)
@@ -436,4 +449,9 @@ class JAPCorpus(Corpus):
                         else:
                             word_list[subscript_index] = self.get_word_list_index_value(word_list, subscript_index)
                 word = ' '.join(word_list)
+
+        if word[-1] =='▵' or word[-1] =='▿':
+            word = word[:-1]
+        if language == 'eng_script':
+            language = 'eng'
         return word.strip(' '), language
