@@ -545,7 +545,7 @@ class ChnCorpus(Corpus):
 
         word = self.choose_line(corpus)
         language = corpus.language
-        if (language == 'eng' and self.prob(0.4)) or (language == 'chn' and self.prob(0.01)):
+        if language == 'eng' and self.prob(0.04):
             #有一定的几率全大写
             word = word.upper()
 
@@ -565,7 +565,7 @@ class ChnCorpus(Corpus):
             tmp_word_1 = np.random.choice(list(str_list_left),1,p=prob)
             #tmp_word_1= random.choice(list(str_list_left))
             word = tmp_word_1[0] + word.strip(' ')
-        if (language == 'eng' and self.prob(0.02)) or (language == 'chn' and  self.prob(0.005)):
+        if (language == 'eng' and self.prob(0.1)) or (language == 'chn' and  self.prob(0.01)):
         #if language == 'eng' and self.prob(0.02):
             # print(language)
             #  有一定的几率将word中的字母随机替换成角标

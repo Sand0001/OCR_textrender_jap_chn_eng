@@ -405,7 +405,7 @@ class JAPCorpus(Corpus):
             #tmp_word_1= random.choice(list(str_list_left))
             word = tmp_word_1[0] + word.strip(' ')
         #print('word',word)
-        if language == 'eng' and self.prob(0.02) :
+        if language == 'eng' and self.prob(0.04) :
             #有一定的几率全大写
             word = word.upper()
 
@@ -415,7 +415,7 @@ class JAPCorpus(Corpus):
         #print (line[0:10], language)
         #word = line[start:start + length]
         #不能让文本的开始和结束有空格的出现
-        if (language == 'eng' and self.prob(0.02) ) or (language == 'jap' and self.prob(0.005) ):
+        if (language == 'eng' and self.prob(0.1) ) or (language == 'jap' and self.prob(0.01) ):
         #if self.prob(0.4):
             #print(language)
             #  有一定的几率将word中的字母随机替换成角标
