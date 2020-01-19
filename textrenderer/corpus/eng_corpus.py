@@ -453,7 +453,7 @@ class EngCorpus(Corpus):
         # print (line[0:10], language)
         # word = line[start:start + length]
         # 不能让文本的开始和结束有空格的出现
-        if language == 'eng' and self.prob(1):
+        if language == 'eng' and self.prob(0.1):
             #print(language)
             #  有一定的几率将word中的字母随机替换成角标
 

@@ -108,9 +108,14 @@ noise:
     enable: true
     fraction: 0.25
 
+split_thin_font:
+  enable: true
+  fraction: 0.2
+
 line:
   enable: true
   fraction: 0.2
+#  fraction: 1
 
   under_line:
     enable: true
@@ -148,3 +153,5 @@ erode:
 dilate:
   enable: false
   fraction: 0.15
+
+

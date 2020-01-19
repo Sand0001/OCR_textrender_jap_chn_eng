@@ -50,7 +50,6 @@ class Renderer(object):
 
             self.font_unsupport_chars = font_utils.get_unsupported_chars(self.fonts, corpus.chars_file)
 
-
         self.show = False
 
         self.showEffect = True
@@ -120,6 +119,80 @@ class Renderer(object):
         text_box_pnts[3][0] = int(text_box_pnts[3][0] * scale)
         return img, text_box_pnts
 
+    def find_binary_threth(self,word_img):
+        num = 0
+        # word_img = cv2.GaussianBlur(word_img, (3, 5), 0)
+        word_img_mean = word_img.mean()
+        if word_img_mean > 200:
+            bg_type = 'white'
+        elif word_img_mean < 100:
+            bg_type = 'black'
+        else:
+            print('分不清背景  None')
+            return None
+        word_img_copy = word_img.copy()
+        threth = None
+        gama = random.uniform(0.1,0.3)
+        print('gama', gama)
+
+        if bg_type == 'white':
+            bg_pixel_num = len(np.where(word_img == 255)[0])
+            fg_pixel_num = word_img.shape[0] * word_img.shape[1] - bg_pixel_num
+            word_img_copy[word_img_copy == 255] = 0
+            print('black_pixel_num', fg_pixel_num)
+            word_img_mean = word_img_copy.sum() / fg_pixel_num
+            print('word_img mean', word_img_mean)
+            for j in range(int(word_img_mean)):
+                i = int(word_img_mean) - j
+
+                if num < (fg_pixel_num) * gama:
+                    num += len(np.where(word_img == i)[0])
+                else:
+                    threth = i
+                    break
+
+
+        else:
+            bg_pixel_num = len(np.where(word_img == 0)[0])
+            fg_pixel_num = word_img.shape[0] * word_img.shape[1] - bg_pixel_num
+
+            print('black_pixel_num', fg_pixel_num)
+            word_img_mean = word_img_copy.sum() / fg_pixel_num
+            print('word_img mean', word_img_mean)
+            for j in range(int(word_img_mean), 256):
+                i = j
+
+                if num < (fg_pixel_num) * gama:
+                    num += len(np.where(word_img == i)[0])
+                else:
+                    threth = i
+                    break
+        return threth
+
+    def split_thin(self, word_img, mask_img, bg, lock=None):
+        word_img = np.array(word_img)
+        mask_img = np.clip(mask_img, 0., 255.).astype(np.int16)
+        plt.figure('split 前')
+        plt.imshow(mask_img, 'gray')
+        # plt.show()
+
+        mask_img_no_blur = mask_img.copy()
+        mask_img = self.apply_gauss_blur(mask_img, ks=[3,5], lock=lock)
+        # mask_img = cv2.GaussianBlur(mask_img, (3, 3), 0)
+        # image = image[:, :, 0]
+        # # image = cv2.erode(image,(7,7),iterations = 1)
+        threth = self.find_binary_threth(mask_img)
+        # threth = 128
+        word_img[mask_img > threth] = bg[mask_img > threth]
+        # word_img[mask_img < threth] = bg
+        # mask_img = self.apply_gauss_blur(mask_img,lock=lock)
+        # mask_img = cv2.GaussianBlur(mask_img, (3, 3), 0)
+        plt.figure('split 后')
+        plt.imshow(word_img, 'gray')
+        # plt.show()
+        return word_img
+
+
     def gen_img(self, img_index):
         t = self.start()
         lock = None
@@ -143,7 +216,9 @@ class Renderer(object):
         #if apply(self.cfg.add_script):
             word_img, text_box_pnts, word_color = self.draw_add_script_text_on_bg(word, font, bg,font_little)
         else:
-            word_img, text_box_pnts, word_color = self.draw_text_on_bg(word, font, bg,language)
+
+
+            word_img, text_box_pnts, word_color,word = self.draw_text_on_bg(word, font, bg,language)
         if self.show:
             print ("BG SHAPE : ", bg.shape)
             print ("Word Image : ", word_img.shape)
@@ -153,23 +228,33 @@ class Renderer(object):
         self.dmsg("After draw_text_on_bg")
         t = self.start()
 
+
+
         if (apply(self.cfg.stretch)):
             word_img, text_box_pnts = self.stretch_img_w(word_img, text_box_pnts)
+
+
+
 
         if apply(self.cfg.crop):
             text_box_pnts = self.apply_crop(text_box_pnts, self.cfg.crop)
         self.end(t, "apply crop ")
-        # if self.show:
-        #     self.plt_show(word_img, text_box_pnts, title = "before line")
+        if self.show:
+            self.plt_show(word_img, text_box_pnts, title = "before line")
         if apply(self.cfg.line):
             word_img, text_box_pnts = self.liner.apply(word_img, text_box_pnts, word_color,word,font)
             self.dmsg("After draw line")
-        # if self.show:
-        #     self.plt_show(word_img, text_box_pnts, title = "after line")
+        if self.show:
+            self.plt_show(word_img, text_box_pnts, title = "after line")
         #print ("After Apply Line", text_box_pnts, word_img.shape, type(word_img))
         #test_image = draw_box(word_img, text_box_pnts, (0, 255, 155))
         #plt.imshow(test_image)
         #plt.show()
+
+
+
+
+
 
         if apply(self.cfg.seamless_clone):  #seal 做前景融合
             word_img = self.apply_seamless_cloe_add_foreground(word_img)
@@ -188,10 +273,9 @@ class Renderer(object):
         if self.debug:
             word_img = draw_box(word_img, text_box_pnts, (155, 255, 0))
 
-        #plt.imshow(word_img)
-        #plt.show()
         t = self.start()
         #print ("Before transform word_img.shape", word_img.shape)
+        # if isinstance(word, str):
         
         word_img, bg_pnts_transformed, text_box_pnts_transformed = \
             self.apply_perspective_transform(word_img, text_box_pnts,
@@ -234,12 +318,19 @@ class Renderer(object):
             self.dmsg("After crop_img")
 
 
+
+
+
+
+
+
         if apply(self.cfg.noise):
             word_img = np.clip(word_img, 0., 255.)
             word_img = self.noiser.apply(word_img)
             if self.show:
                 self.plt_show(word_img, title = 'After noiser')
             self.dmsg("After noiser")
+
 
        
 
@@ -490,8 +581,6 @@ class Renderer(object):
             return None
             #plt.imshow(bg)
             #plt.show()
-            
-        
 
         #出现一些更不清晰的样本
         bg_mean = int(np.mean(word_roi_bg) * (2 / 3))
@@ -511,6 +600,8 @@ class Renderer(object):
             np_img: word image
             text_box_pnts: left-top, right-top, right-bottom, left-bottom
         """
+
+
         bg_height = bg.shape[0]
         bg_width = bg.shape[1]
 
@@ -519,17 +610,23 @@ class Renderer(object):
         word_width = word_size[0]
 
         offset = font.getoffset(word)
-        
+        word_list = []
+        text_x = int((bg_width - word_width) / 2)
+        text_y = int((bg_height - word_height) / 2)
+        word_color = self.get_word_color(bg, text_x, text_y, word_height, word_width)
+
+
+
+
         pil_img = Image.fromarray(np.uint8(bg))
         draw = ImageDraw.Draw(pil_img)
         if self.show:
             self.plt_show(bg, title = 'bg')
         #Draw text in the center of bg
-        text_x = int((bg_width - word_width) / 2)
-        text_y = int((bg_height - word_height) / 2)
+
+
         if self.show:
             print ("BG_H_W : ( ", bg_height, bg_width,  ")", " Offset : (" , offset , ")", " WordSize : (", word_size, ")", "Text_x", text_x, "Text_y", text_y)
-        word_color = self.get_word_color(bg, text_x, text_y, word_height, word_width)
         if word_color is None:
             raise Exception
         if apply(self.cfg.random_space):
@@ -543,7 +640,33 @@ class Renderer(object):
                 word_width = self.draw_text_wrapper(draw, word, text_x - offset[0], text_y - offset[1], font, word_color)
                 # draw.text((text_x - offset[0], text_y - offset[1]), word, fill=word_color, font=font)
 
+                # np_img = np.array(pil_img).astype(np.int16)
+                if (apply(self.cfg.split_thin_font)):
+                    word_size = self.get_word_size(font, word)
+
+                    mask_bg = np.ones((bg_height, bg_width)) * 255
+                    mask_bg = mask_bg.astype(np.uint8)
+                    # word_list = [word,'split']
+                    # 将mask 背景生成
+                    mask_img = Image.fromarray(np.uint8(mask_bg))
+                    mask_draw = ImageDraw.Draw(mask_img)
+
+                    word_width = self.draw_text_wrapper(mask_draw, word, text_x - offset[0], text_y - offset[1], font, 0)
+                    mask_img = np.array(mask_img)
+                    pil_img = self.split_thin(pil_img,mask_img,bg)
+
+
+
+
                 np_img = np.array(pil_img).astype(np.float32)
+
+
+
+
+
+
+
+
         if language == 'chn':
             str_list_left = '《〈【〔「'
 
@@ -558,7 +681,6 @@ class Renderer(object):
                 text_x = text_x+tmp_left_offset
         elif language == 'jap':
             str_list_left = '「【《〈〔'
-
             str_list_right = '】」。、〕》〉'
             if word[-1] in str_list_right:
                 # if word[-1] == '。' or word[-1] == '、':
@@ -580,8 +702,13 @@ class Renderer(object):
             [text_x + word_width, text_y + word_height],
             [text_x, text_y + word_height]
         ]
+        if word_list != []:
 
-        return np_img, text_box_pnts, word_color
+
+            return np_img, text_box_pnts, word_color,word_list
+        else:
+            return np_img, text_box_pnts, word_color,word
+
 
     def draw_add_script_text_on_bg(self, word, font, bg,font_little):
         """
@@ -1007,7 +1134,8 @@ class Renderer(object):
             bg = np.array(BackgroundGenerator().gaussian_noise(height, width))
             bg = self.apply_gauss_blur(bg, lock = lock)
             #print('3', bg.shape)
-            return bg 
+            return bg
+
         if r >3 and r< 6:
             #noise_index = np.random.randint(225,254)
             bg = np.random.randint(220, 255, (height, width)).astype(np.uint8)
@@ -1153,7 +1281,7 @@ class Renderer(object):
         :return:
         '''
         tmp_name = '/data1/fengjing/output/tmp/' + str(time.time()+random.random()) +'.jpg'
-        #tmp_name = '/fengjing/data_script/OCR_textrender/output/tmp/' +'1.jpg'
+        # tmp_name = '/fengjing/data_script/OCR_textrender/output/tmp/' +'1.jpg'
         cv2.imwrite(tmp_name,img1)
         img1 = cv2.imread(tmp_name)
         img2  = random.choice(self.fgs)
