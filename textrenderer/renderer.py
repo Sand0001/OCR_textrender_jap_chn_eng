@@ -218,7 +218,7 @@ class Renderer(object):
         else:
 
 
-            word_img, text_box_pnts, word_color,word = self.draw_text_on_bg(word, font, bg,language)
+            word_img, text_box_pnts, word_color,word = self.draw_text_on_bg(word, font, bg,language,lock = lock)
         if self.show:
             print ("BG SHAPE : ", bg.shape)
             print ("Word Image : ", word_img.shape)
@@ -590,7 +590,7 @@ class Renderer(object):
         #print ("bg_mean : ", bg_mean, " np.mean(word_roi_bg) : ", np.mean(word_roi_bg), "word_color : ", word_color)
         return word_color
 
-    def draw_text_on_bg(self, word, font, bg,language):
+    def draw_text_on_bg(self, word, font, bg,language,lock = None):
         """
         Draw word in the center of background
         :param word: word to draw
@@ -653,7 +653,7 @@ class Renderer(object):
 
                     word_width = self.draw_text_wrapper(mask_draw, word, text_x - offset[0], text_y - offset[1], font, 0)
                     mask_img = np.array(mask_img)
-                    pil_img = self.split_thin(pil_img,mask_img,bg)
+                    pil_img = self.split_thin(pil_img,mask_img,bg,lock = lock)
 
 
 
