@@ -212,13 +212,18 @@ class Renderer(object):
         #如果Wordsize特别小，乘以一个系数也是有问题的
 
         bg = self.gen_bg(width=word_size[0] + 280, height=word_size[1]  +  96, lock = lock)
+
         if ('▵' in word) or ('▿' in word):
         #if apply(self.cfg.add_script):
             word_img, text_box_pnts, word_color = self.draw_add_script_text_on_bg(word, font, bg,font_little)
+            word = word.replace('▿©', '©')
+            word = word.replace('▿®', '®')
+            word = word.replace('▵©', '©')
+            word = word.replace('▵®', '®')
+
         else:
-
-
             word_img, text_box_pnts, word_color,word = self.draw_text_on_bg(word, font, bg,language,lock = lock)
+
         if self.show:
             print ("BG SHAPE : ", bg.shape)
             print ("Word Image : ", word_img.shape)
@@ -227,15 +232,8 @@ class Renderer(object):
         #print ("Before Apply", word_size, word_img.shape)
         self.dmsg("After draw_text_on_bg")
         t = self.start()
-
-
-
         if (apply(self.cfg.stretch)):
             word_img, text_box_pnts = self.stretch_img_w(word_img, text_box_pnts)
-
-
-
-
         if apply(self.cfg.crop):
             text_box_pnts = self.apply_crop(text_box_pnts, self.cfg.crop)
         self.end(t, "apply crop ")
@@ -250,16 +248,8 @@ class Renderer(object):
         #test_image = draw_box(word_img, text_box_pnts, (0, 255, 155))
         #plt.imshow(test_image)
         #plt.show()
-
-
-
-
-
-
         if apply(self.cfg.seamless_clone):  #seal 做前景融合
             word_img = self.apply_seamless_cloe_add_foreground(word_img)
-
-
         if self.debug:
             word_img = draw_box(word_img, text_box_pnts, (0, 255, 155))
         if self.show:
@@ -304,7 +294,6 @@ class Renderer(object):
         #if apply(self.cfg.seamless_clone):
         #print('word_img.shape',word_img.shape)
 
-
         if self.show:
             print ("AFTER CROP")
             #左下, 右下, 右上，左上
@@ -317,23 +306,12 @@ class Renderer(object):
             self.end(t, "apply crop_img ")
             self.dmsg("After crop_img")
 
-
-
-
-
-
-
-
         if apply(self.cfg.noise):
             word_img = np.clip(word_img, 0., 255.)
             word_img = self.noiser.apply(word_img)
             if self.show:
                 self.plt_show(word_img, title = 'After noiser')
             self.dmsg("After noiser")
-
-
-       
-
 
         blured = False
         if apply(self.cfg.blur):
@@ -382,13 +360,11 @@ class Renderer(object):
             if self.show:
                 self.plt_show(word_img, title = 'After sharp')
 
-        
         if apply(self.cfg.erode) and prydown_scale < 1.3:
 
             word_img = self.add_erode(word_img,font,word)
             if self.show:
                 self.plt_show(word_img, title = 'After erode')
-
 
         if apply(self.cfg.dilate):
             self.dmsg ("-*- APPLY dilate ")
@@ -397,11 +373,6 @@ class Renderer(object):
         #word_img = cv2.resize(word_img, (self.out_width, self.out_height), interpolation=cv2.INTER_CUBIC)
         if self.show:
             self.plt_show(word_img, title = 'After Resize')
-        # #延后做
-        # if not blured:
-        #     if apply(self.cfg.prydown):
-        #         word_img = self.apply_prydown(word_img)
-        #         self.dmsg("After prydown")
 
         self.end(t, "apply2 ")
         self.dmsg ("***********************END*****************")
@@ -733,9 +704,6 @@ class Renderer(object):
         draw = ImageDraw.Draw(pil_img)
         if self.show:
             self.plt_show(bg, title='bg')
-        # text_x = random.randint(50, bg_width - word_width - 50)
-        # text_y = random.randint(50, bg_height - word_height - 50)
-
         # print ("BG_H_W : ( ", bg_height, bg_width,  ")", " Offset : (" , offset , ")", " WordSize : (", word_size, ")", "Text_x", text_x, "Text_y", text_y)
         # Draw text in the center of bg
         text_x = int((bg_width - word_width) / 2)
@@ -751,15 +719,13 @@ class Renderer(object):
         if apply(self.cfg.random_space):
             text_x, text_y, word_width, word_height = self.draw_text_with_random_space(draw, font, word, word_color,
                                                                                        bg_width, bg_height)
+
+
             np_img = np.array(pil_img).astype(np.float32)
         else:
-            # if apply(self.cfg.seamless_clone):
-            #     np_img = self.draw_text_seamless(font, bg, word, word_color, word_height, word_width, offset)
-            # else:                          #   目前只将subscript加入这里 seamless_clone和random_space里没有
-                #self.draw_text_wrapper(draw, word, text_x - offset[0], text_y - offset[1], font, word_color)
-
                 word_width,word_height,text_y,text_x = self.draw_text_add_script(draw, word, text_x - offset[0], text_y - offset[1], font, word_color,font_little)
                 # draw.text((text_x - offset[0], text_y - offset[1]), word, fill=word_color, font=font)
+
 
                 np_img = np.array(pil_img).astype(np.float32)
 
@@ -898,20 +864,25 @@ class Renderer(object):
         return width
 
     def find_superscript_y(self,y,text_char,superscript_char,font,font_little):
-        script_max_y = y  + ((font.getsize(text_char)[1] - font.getoffset(text_char)[1]) // 3*2) + \
+        print('计算super script 的 y',y)
+        script_max_y = y  + ((font.getsize(text_char)[1] - font.getoffset(text_char)[1]) // 2) + \
                        font.getoffset(text_char)[1] - (font_little.getsize(superscript_char)[1])  # 上标位置随机
-        script_min_y = y  +font.getoffset(text_char)[1] - (font_little.getsize(superscript_char)[1])
+        script_min_y = y  +font_little.getoffset(superscript_char)[1] - (font_little.getsize(superscript_char)[1])
+        # script_min_y = y   - (font_little.getsize(superscript_char)[1])
+
+        print('script_max_y',script_max_y,'script_min_y',script_min_y)
         if script_max_y <= script_min_y:
             y_superscript = script_max_y
         else:
 
             y_superscript = np.random.randint(script_min_y, script_max_y)  # TODO  2有问题
-        return y_superscript
+        return y_superscript,script_max_y
 
     def finde_subscript_y(self,y,text_char,subscript_char,font,font_little):
-
+        print('计算script 的 y',y)
         script_min_y = y  -((font.getsize(text_char)[1] - font.getoffset(text_char)[1]) // 5*3) + \
                        font.getsize(text_char)[1]-font_little.getoffset(subscript_char)[1] # 上标位置随机
+        # script_max_y = y   - font_little.getoffset(subscript_char)[1]
         script_max_y = y  +font.getsize(text_char)[1] - font_little.getoffset(subscript_char)[1]
 
         if script_min_y >= script_max_y:
@@ -973,7 +944,7 @@ class Renderer(object):
         test_char = None
         for index, i in enumerate(tmp_script_index_list):
             tmp_script_index = i
-
+            print('x,y',x,y)
             x = self.draw_normal_text(draw,x, y, text[start_index:tmp_script_index], text_color, font)
             new_y_min, new_y_max = self.update_ymax_and_ymin(y, new_y_min, new_y_max, text[start_index:],
                                                         font)
@@ -983,21 +954,20 @@ class Renderer(object):
                     test_char = text_tmp_1.strip()[-1]
                 else:
                     space_num_left, test_char_left = self.count_space_num_left(text_tmp_1)
-                    space_num_right, test_char_right = self.count_space_num_right(text[tmp_script_index:])
+                    space_num_right, test_char_right = self.count_space_num_right(text[tmp_script_index+2:])
                     if space_num_left > space_num_right:
                         test_char = test_char_right
                     elif space_num_left < space_num_right:
                         test_char = test_char_left
                     else:
                         test_char = np.random.choice([test_char_left, test_char_right])
-            if text[i] == '▵' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[i + 1])) != 0:
+            if text[i] == '▵' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+\®\©]+)').findall(text[i + 1])) != 0:
                 if index != 0 and text[tmp_script_index_list[index-1]] == '▵':
                     y_superscript = y_superscript
                 else:
                     if test_char == None:
-                        test_char = self.find_test_char(text[index+2:])   #寻找作为标杆的大字母
-                    y_superscript = self.find_superscript_y(y,test_char,text[index+1],font,font_little)
-
+                        test_char = self.find_test_char(text[i+2:])   #  TODO:寻找作为标杆的大字母有些许问题
+                    y_superscript,script_max_y = self.find_superscript_y(y,test_char,text[i+1],font,font_little)
                 draw.text((x, y_superscript), text[i + 1], fill=text_color, font=font_little)
                 x += font_little.getsize(text[i + 1])[0]    #更新x的位置
                 new_y_min,new_y_max = self.update_ymax_and_ymin(y_superscript, new_y_min, new_y_max, text[i + 1], font_little)
@@ -1006,22 +976,24 @@ class Renderer(object):
                     x = self.draw_normal_text(draw,x, y, text[start_index:], text_color, font)
                     new_y_min, new_y_max = self.update_ymax_and_ymin(y, new_y_min, new_y_max, text[start_index:],
                                                                 font)
-            elif text[i] == '▿' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+]+)').findall(text[i + 1])) != 0:
+            elif text[i] == '▿' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+\®\©]+)').findall(text[i + 1])) != 0:
                 #下标位置随机
 
                 if index != 0 and text[tmp_script_index_list[index-1]] == '▿':
                     y_subscript = y_subscript
                 else:
-                    y_subscript = self.finde_subscript_y(y,test_char[-1],text[index+1],font,font_little)
+                    y_subscript = self.finde_subscript_y(y,test_char[-1],text[i+1],font,font_little)
                 new_y_min,new_y_max = self.update_ymax_and_ymin(y_subscript, new_y_min, new_y_max, text[i + 1], font_little)   #更新ymax和ymin
                 draw.text((x, y_subscript), text[i + 1], fill=text_color,
                           font=font_little)
                 x += font_little.getsize(text[i + 1])[0]
+
                 start_index = i + 2
                 if index == len(tmp_script_index_list) - 1 and text[start_index:] != '':
                     x = self.draw_normal_text(draw,x, y, text[start_index:], text_color, font)
                     new_y_min, new_y_max = self.update_ymax_and_ymin(y, new_y_min, new_y_max, text[start_index:], font)
         word_height = new_y_max - new_y_min
+
         return x - word_start, word_height,new_y_min,word_start
 
 

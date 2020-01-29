@@ -370,6 +370,8 @@ class EngCorpus(Corpus):
             add_scripts = random.choice(scripts_word)
         elif gen_method == 6:
             add_scripts = random.choice(self.super_scripts_num_3)
+        elif gen_method == 7:
+            add_scripts = random.choice(['▿©','▿®','▵©','▵®'])
         else:
             add_scripts = ''
             num_list = [1, 1, 2, 2, 3, 4]
@@ -399,6 +401,8 @@ class EngCorpus(Corpus):
             add_scripts = add_scripts.replace('▿-', '')
             if self.prob(0.85) and '▿' in add_scripts:
                 add_scripts = ''
+        # add_scripts = random.choice(['▿©', '▿®', '▵©', '▵®'])
+
         return add_scripts
 
     def get_scripts_index_list(self,word_list):
