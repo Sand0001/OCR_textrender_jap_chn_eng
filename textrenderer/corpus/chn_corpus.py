@@ -453,6 +453,8 @@ class ChnCorpus(Corpus):
             add_scripts = random.choice(scripts_word)
         elif gen_method == 6:
             add_scripts = random.choice(self.super_scripts_num_3)
+        elif gen_method == 7:
+            add_scripts = random.choice(['▿©', '▿®', '▵©', '▵®'])
         else:
             add_scripts = ''
             num_list = [1, 1, 2, 2, 3, 4]
@@ -565,7 +567,7 @@ class ChnCorpus(Corpus):
             tmp_word_1 = np.random.choice(list(str_list_left),1,p=prob)
             #tmp_word_1= random.choice(list(str_list_left))
             word = tmp_word_1[0] + word.strip(' ')
-        if (language == 'eng' and self.prob(0.1)) or (language == 'chn' and  self.prob(0.01)):
+        if (language == 'eng' and self.prob(0.11)) or (language == 'chn' and  self.prob(0.01)):
         #if language == 'eng' and self.prob(0.02):
             # print(language)
             #  有一定的几率将word中的字母随机替换成角标

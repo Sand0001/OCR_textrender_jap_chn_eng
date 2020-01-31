@@ -310,6 +310,8 @@ class JAPCorpus(Corpus):
             add_scripts = random.choice(scripts_word)
         elif gen_method == 6:
             add_scripts = random.choice(self.super_scripts_num_3)
+        elif gen_method == 7:
+            add_scripts = random.choice(['▿©', '▿®', '▵©', '▵®'])
         else:
             add_scripts = ''
             num_list = [1, 1, 2, 2, 3, 4]
