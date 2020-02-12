@@ -454,7 +454,10 @@ class ChnCorpus(Corpus):
         elif gen_method == 6:
             add_scripts = random.choice(self.super_scripts_num_3)
         elif gen_method == 7:
-            add_scripts = random.choice(['▿©', '▿®', '▵©', '▵®'])
+            # add_scripts = random.choice(['▿©', '▿®', '▵©', '▵®'])
+            sp_symbol = random.choice(['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩', '®', '©', '*', '∞', '※'])
+            super_or_sub = random.choice(['▿', '▵'])
+            add_scripts = super_or_sub + sp_symbol
         else:
             add_scripts = ''
             num_list = [1, 1, 2, 2, 3, 4]

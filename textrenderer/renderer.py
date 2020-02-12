@@ -133,15 +133,12 @@ class Renderer(object):
         word_img_copy = word_img.copy()
         threth = None
         gama = random.uniform(0.1,0.3)
-        print('gama', gama)
 
         if bg_type == 'white':
             bg_pixel_num = len(np.where(word_img == 255)[0])
             fg_pixel_num = word_img.shape[0] * word_img.shape[1] - bg_pixel_num
             word_img_copy[word_img_copy == 255] = 0
-            print('black_pixel_num', fg_pixel_num)
             word_img_mean = word_img_copy.sum() / fg_pixel_num
-            print('word_img mean', word_img_mean)
             for j in range(int(word_img_mean)):
                 i = int(word_img_mean) - j
 
@@ -156,9 +153,7 @@ class Renderer(object):
             bg_pixel_num = len(np.where(word_img == 0)[0])
             fg_pixel_num = word_img.shape[0] * word_img.shape[1] - bg_pixel_num
 
-            print('black_pixel_num', fg_pixel_num)
             word_img_mean = word_img_copy.sum() / fg_pixel_num
-            print('word_img mean', word_img_mean)
             for j in range(int(word_img_mean), 256):
                 i = j
 
@@ -172,24 +167,11 @@ class Renderer(object):
     def split_thin(self, word_img, mask_img, bg, lock=None):
         word_img = np.array(word_img)
         mask_img = np.clip(mask_img, 0., 255.).astype(np.int16)
-        plt.figure('split 前')
-        plt.imshow(mask_img, 'gray')
-        # plt.show()
-
         mask_img_no_blur = mask_img.copy()
         mask_img = self.apply_gauss_blur(mask_img, ks=[3,5], lock=lock)
-        # mask_img = cv2.GaussianBlur(mask_img, (3, 3), 0)
-        # image = image[:, :, 0]
-        # # image = cv2.erode(image,(7,7),iterations = 1)
         threth = self.find_binary_threth(mask_img)
-        # threth = 128
         word_img[mask_img > threth] = bg[mask_img > threth]
-        # word_img[mask_img < threth] = bg
-        # mask_img = self.apply_gauss_blur(mask_img,lock=lock)
-        # mask_img = cv2.GaussianBlur(mask_img, (3, 3), 0)
-        plt.figure('split 后')
-        plt.imshow(word_img, 'gray')
-        # plt.show()
+
         return word_img
 
 
@@ -216,10 +198,9 @@ class Renderer(object):
         if ('▵' in word) or ('▿' in word):
         #if apply(self.cfg.add_script):
             word_img, text_box_pnts, word_color = self.draw_add_script_text_on_bg(word, font, bg,font_little)
-            word = word.replace('▿©', '©')
-            word = word.replace('▿®', '®')
-            word = word.replace('▵©', '©')
-            word = word.replace('▵®', '®')
+            word = word.replace('▿','')
+            word = word.replace('▵','')
+
 
         else:
             word_img, text_box_pnts, word_color,word = self.draw_text_on_bg(word, font, bg,language,lock = lock)
@@ -864,13 +845,11 @@ class Renderer(object):
         return width
 
     def find_superscript_y(self,y,text_char,superscript_char,font,font_little):
-        print('计算super script 的 y',y)
         script_max_y = y  + ((font.getsize(text_char)[1] - font.getoffset(text_char)[1]) // 2) + \
                        font.getoffset(text_char)[1] - (font_little.getsize(superscript_char)[1])  # 上标位置随机
         script_min_y = y  +font_little.getoffset(superscript_char)[1] - (font_little.getsize(superscript_char)[1])
         # script_min_y = y   - (font_little.getsize(superscript_char)[1])
 
-        print('script_max_y',script_max_y,'script_min_y',script_min_y)
         if script_max_y <= script_min_y:
             y_superscript = script_max_y
         else:
@@ -879,7 +858,6 @@ class Renderer(object):
         return y_superscript,script_max_y
 
     def finde_subscript_y(self,y,text_char,subscript_char,font,font_little):
-        print('计算script 的 y',y)
         script_min_y = y  -((font.getsize(text_char)[1] - font.getoffset(text_char)[1]) // 5*3) + \
                        font.getsize(text_char)[1]-font_little.getoffset(subscript_char)[1] # 上标位置随机
         # script_max_y = y   - font_little.getoffset(subscript_char)[1]
@@ -944,7 +922,6 @@ class Renderer(object):
         test_char = None
         for index, i in enumerate(tmp_script_index_list):
             tmp_script_index = i
-            print('x,y',x,y)
             x = self.draw_normal_text(draw,x, y, text[start_index:tmp_script_index], text_color, font)
             new_y_min, new_y_max = self.update_ymax_and_ymin(y, new_y_min, new_y_max, text[start_index:],
                                                         font)
@@ -961,7 +938,8 @@ class Renderer(object):
                         test_char = test_char_left
                     else:
                         test_char = np.random.choice([test_char_left, test_char_right])
-            if text[i] == '▵' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+\®\©]+)').findall(text[i + 1])) != 0:
+            # if text[i] == '▵' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+\®\©\]+)').findall(text[i + 1])) != 0:
+            if text[i] == '▵' and text[i + 1]!= '':
                 if index != 0 and text[tmp_script_index_list[index-1]] == '▵':
                     y_superscript = y_superscript
                 else:
@@ -976,8 +954,9 @@ class Renderer(object):
                     x = self.draw_normal_text(draw,x, y, text[start_index:], text_color, font)
                     new_y_min, new_y_max = self.update_ymax_and_ymin(y, new_y_min, new_y_max, text[start_index:],
                                                                 font)
-            elif text[i] == '▿' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+\®\©]+)').findall(text[i + 1])) != 0:
+            # elif text[i] == '▿' and len(re.compile(r'([a-zA-Z0-9]+|[\(\)\-\=\+\®\©]+)').findall(text[i + 1])) != 0:
                 #下标位置随机
+            elif text[i] == '▿' and text[i + 1] != '':
 
                 if index != 0 and text[tmp_script_index_list[index-1]] == '▿':
                     y_subscript = y_subscript
