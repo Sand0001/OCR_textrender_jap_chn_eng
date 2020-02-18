@@ -141,14 +141,11 @@ class Renderer(object):
             word_img_mean = word_img_copy.sum() / fg_pixel_num
             for j in range(int(word_img_mean)):
                 i = int(word_img_mean) - j
-
                 if num < (fg_pixel_num) * gama:
                     num += len(np.where(word_img == i)[0])
                 else:
                     threth = i
                     break
-
-
         else:
             bg_pixel_num = len(np.where(word_img == 0)[0])
             fg_pixel_num = word_img.shape[0] * word_img.shape[1] - bg_pixel_num
@@ -198,8 +195,10 @@ class Renderer(object):
         if ('▵' in word) or ('▿' in word):
         #if apply(self.cfg.add_script):
             word_img, text_box_pnts, word_color = self.draw_add_script_text_on_bg(word, font, bg,font_little)
-            word = word.replace('▿','')
-            word = word.replace('▵','')
+            sp_symbol = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩','®','©','*','∞','※']
+            for sp in sp_symbol:
+                word = word.replace('▿'+sp,'')
+                word = word.replace('▵'+sp,'')
 
 
         else:
@@ -1134,16 +1133,22 @@ class Renderer(object):
                 font_path = random.choice(font_dct['eng_strict'])
             else:
                 font_path = random.choice(font_dct['eng'])
+            if '□' in word or '■' in word:
+                font_path = random.choice(font_dct['eng_checkbox'])
+                if '=' in word:
+                    word = word.replace('=','')
         else:
             if language == 'jap':
                 font_path = random.choice(font_dct['jap'])
+                if '□' in word or '■' in word:
+                    font_path = random.choice(font_dct['jap_checkbox'])
             else:
                 if ',' in word or ';' in word:
 
                     font_path = random.choice(font_dct['chn_strict'])
                 else:
                     font_path = random.choice(font_dct['chn'])
-        return font_path
+        return font_path,word
 
     def get_font_little_size(self,font_size):
         font_little_size = int(self.p1(font_size))
@@ -1167,7 +1172,7 @@ class Renderer(object):
                 word = word[:self.max_chars]
             font_dct = self.fonts
             #word = ', lal，l。a; lala: la；la.aaa'
-            font_path = self.choose_font(language, word, font_dct)
+            font_path,word = self.choose_font(language, word, font_dct)
 
             if self.strict:
                 unsupport_chars = self.font_unsupport_chars[font_path]

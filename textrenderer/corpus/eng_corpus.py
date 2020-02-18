@@ -357,7 +357,7 @@ class EngCorpus(Corpus):
 
         scripts = random.choice([self.down_subscript_list, self.up_subscript_list])
         scripts_word = [' 1▵s▵t',' 3▵r▵d',' 2▵n▵d',' 4▵t▵h','▵T▵M','▵t▵h']
-        gen_method = np.random.randint(0, 9)
+        gen_method = np.random.randint(0, 10)
         if gen_method == 1:
             add_scripts = random.choice(self.sub_scripts_num)
         elif gen_method == 2:  # self.super_scripts_num_1
@@ -371,8 +371,12 @@ class EngCorpus(Corpus):
         elif gen_method == 6:
             add_scripts = random.choice(self.super_scripts_num_3)
         elif gen_method == 7:
-            add_scripts = random.choice(['▿©','▿®','▵©','▵®'])
-        else:
+            # add_scripts = random.choice(['▿©','▿®','▵©','▵®'])
+            sp_symbol = random.choice(['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩', '®', '©', '*', '∞', '※'])
+            super_or_sub = random.choice(['▿', '▵'])
+            add_scripts = super_or_sub + sp_symbol
+        elif gen_method == 8:
+
             add_scripts = ''
             num_list = [1, 1, 2, 2, 3, 4]
             num = random.choice(num_list)  # 随机放置几个连续角标
@@ -393,6 +397,9 @@ class EngCorpus(Corpus):
                 add_scripts += '▵)'
             if add_scripts.count('▿(') % 2 == 1:
                 add_scripts += '▿)'
+        else:
+            add_scripts = random.choice(['□', '■'])
+
 
         if on_left:
             add_scripts = add_scripts.replace('▵+','')
@@ -401,7 +408,6 @@ class EngCorpus(Corpus):
             add_scripts = add_scripts.replace('▿-', '')
             if self.prob(0.85) and '▿' in add_scripts:
                 add_scripts = ''
-        # add_scripts = random.choice(['▿©', '▿®', '▵©', '▵®'])
 
         return add_scripts
 
@@ -434,7 +440,7 @@ class EngCorpus(Corpus):
                 r_i = random.randint(0, len(self.single_words_list) - 1)
                 word += self.single_words_list[r_i]
             return word,'eng'
-        language = np.random.choice(['eng','eng_ddcript'],p = [0.9,0.1])
+        language = np.random.choice(['eng','eng_script'],p = [0.9,0.1])
         if self.corpus[0].language == language:
             corpus = self.corpus[0]
         else:
@@ -447,7 +453,7 @@ class EngCorpus(Corpus):
         word = self.choose_line(corpus)
         language = corpus.language
 
-        if language == 'eng' and self.prob(0.04):
+        if language == 'eng' and self.prob(0.02):
             # 有一定的几率全大写
             word = word.upper()
 

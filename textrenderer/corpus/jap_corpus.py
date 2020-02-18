@@ -293,11 +293,23 @@ class JAPCorpus(Corpus):
         return word.strip(' '), language
 
 
-    def get_scripts(self,on_left = False):
+    def get_scripts(self,language,on_left = False):
+        if language == 'chn' or language == 'jap':
+            gen_method = np.random.randint(1, 3)
+            if gen_method == 1:
+                sp_symbol = random.choice(['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩', '®', '©', '*', '∞', '※'])
+                super_or_sub = random.choice(['▿', '▵'])
+                add_scripts = super_or_sub + sp_symbol
+            else:
+
+                add_scripts = random.choice(['□', '■'])
+
+            return add_scripts
+
 
         scripts = random.choice([self.down_subscript_list, self.up_subscript_list])
         scripts_word = [' 1▵s▵t', ' 3▵r▵d', ' 2▵n▵d', ' 4▵t▵h', '▵T▵M', '▵t▵h']
-        gen_method = np.random.randint(0, 9)
+        gen_method = np.random.randint(0, 15)
         if gen_method == 1:
             add_scripts = random.choice(self.sub_scripts_num)
         elif gen_method == 2:  # self.super_scripts_num_1
@@ -311,8 +323,12 @@ class JAPCorpus(Corpus):
         elif gen_method == 6:
             add_scripts = random.choice(self.super_scripts_num_3)
         elif gen_method == 7:
-            add_scripts = random.choice(['▿©', '▿®', '▵©', '▵®'])
-        else:
+
+            sp_symbol = random.choice(['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩','®','©','*','∞','※'])
+            super_or_sub = random.choice(['▿','▵'])
+            add_scripts = super_or_sub+sp_symbol
+        elif gen_method == 8:
+
             add_scripts = ''
             num_list = [1, 1, 2, 2, 3, 4]
             num = random.choice(num_list)  # 随机放置几个连续角标
@@ -333,6 +349,8 @@ class JAPCorpus(Corpus):
                 add_scripts += '▵)'
             if add_scripts.count('▿(') % 2 == 1:
                 add_scripts += '▿)'
+        else:
+            add_scripts = random.choice(['□', '■'])
 
         if on_left:
             add_scripts = add_scripts.replace('▵+','')
@@ -341,6 +359,7 @@ class JAPCorpus(Corpus):
             add_scripts = add_scripts.replace('▿-', '')
             if self.prob(0.85) and '▿' in add_scripts:
                 add_scripts = ''
+
         return add_scripts
 
     def get_scripts_index_list(self,word_list):
@@ -351,12 +370,12 @@ class JAPCorpus(Corpus):
                 subscript_index_list.append(tmp_i)
         return subscript_index_list
 
-    def get_word_list_index_value(self,word_list,subscript_index):
+    def get_word_list_index_value(self,word_list,subscript_index,language):
         if np.random.randint(1, 7) == 1:
-            add_scripts = self.get_scripts(on_left=True)
+            add_scripts = self.get_scripts(language,on_left=True)
             return add_scripts + word_list[subscript_index]
         else:
-            add_scripts = self.get_scripts()
+            add_scripts = self.get_scripts(language)
             return word_list[subscript_index] + add_scripts
 
 
@@ -417,7 +436,7 @@ class JAPCorpus(Corpus):
         #print (line[0:10], language)
         #word = line[start:start + length]
         #不能让文本的开始和结束有空格的出现
-        if (language == 'eng' and self.prob(0.1) ) or (language == 'jap' and self.prob(0.01) ):
+        if (language == 'eng' and self.prob(1) ) or (language == 'jap' and self.prob(0.8) ):
         #if self.prob(0.4):
             #print(language)
             #  有一定的几率将word中的字母随机替换成角标
@@ -433,9 +452,9 @@ class JAPCorpus(Corpus):
                 for subscript_index in subscript_index_list:
                     if subscript_index + 1 < len(word_list):
                         if word_list[subscript_index] != ' ' and word_list[subscript_index + 1] != ' ':  # 前后不能都是空格
-                            word_list[subscript_index] = self.get_word_list_index_value(word_list, subscript_index)
+                            word_list[subscript_index] = self.get_word_list_index_value(word_list, subscript_index,language)
                     else:
-                        word_list[subscript_index] = self.get_word_list_index_value(word_list, subscript_index )
+                        word_list[subscript_index] = self.get_word_list_index_value(word_list, subscript_index,language )
                 word = ''.join(word_list)
             else:
 
@@ -447,9 +466,9 @@ class JAPCorpus(Corpus):
                         aaa = ',.!;:'
                         if word_list[subscript_index][-1] in aaa :
                             if self.prob(0.1):
-                                word_list[subscript_index] = self.get_word_list_index_value(word_list,subscript_index)
+                                word_list[subscript_index] = self.get_word_list_index_value(word_list,subscript_index,language)
                         else:
-                            word_list[subscript_index] = self.get_word_list_index_value(word_list, subscript_index)
+                            word_list[subscript_index] = self.get_word_list_index_value(word_list, subscript_index,language)
                 word = ' '.join(word_list)
 
         if word[-1] =='▵' or word[-1] =='▿':

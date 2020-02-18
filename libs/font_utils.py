@@ -2,12 +2,32 @@ import os
 import pickle
 import glob
 from itertools import chain
+import hashlib
 
 from fontTools.ttLib import TTCollection, TTFont
 from fontTools.unicode import Unicode
 
-from .utils import md5, load_chars
+# from .utils import md5, load_chars
 
+
+def load_chars(filepath):
+    if not os.path.exists(filepath):
+        print("Chars file not exists.")
+        exit(1)
+
+    ret = ''
+    with open(filepath, 'r', encoding='utf-8') as f:
+        while True:
+            line = f.readline()
+            if not line:
+                break
+            ret += line.strip('\n')
+    return ret
+
+def md5(string):
+    m = hashlib.md5()
+    m.update(string.encode('utf-8'))
+    return m.hexdigest()
 
 def get_font_paths(fonts_dir):
     """
@@ -43,6 +63,9 @@ def get_font_paths_from_list(list_filename):
     font_dct['jap'] = []
     font_dct['eng_strict'] = []
     font_dct['chn_strict'] = []
+    font_dct['jap_checkbox'] = [os.path.abspath(line.strip()) for line in open('./data/fonts_list/jap_sp_symbol.txt','r').readlines()]
+    font_dct['eng_checkbox'] = [os.path.abspath(line.strip()) for line in open('./data/fonts_list/eng_sp_symbol.txt','r').readlines()]
+
     for font_path in fonts:
         tmp_font_path = font_path.split('/')[-2]
 
@@ -137,24 +160,34 @@ def get_fonts_chars(fonts, chars_file):
     chars = ''.join(chars)
     for language, font_list in fonts.items():
         for font_path in font_list:
-    #for font_path in fonts:
+    # for font_path in fonts:
             string = ''.join([font_path, chars])
             file_md5 = md5(string)
 
             cache_file_path = os.path.join(cache_dir, file_md5)
 
             if not os.path.exists(cache_file_path):
-                ttf = load_font(font_path)
-                _, supported_chars = check_font_chars(ttf, chars)
-                print('Save font(%s) supported chars(%d) to cache' % (font_path, len(supported_chars)))
+                try:
+                    ttf = load_font(font_path)
+                    _, supported_chars = check_font_chars(ttf, chars)
+                    # if len(supported_chars) == 15:
+                    #     print(font_path)
+                    print('len(supported_chars)',len(supported_chars))
+                    # print('Save font(%s) supported chars(%d) to cache' % (font_path, len(supported_chars)))
 
-                with open(cache_file_path, 'wb') as f:
-                    pickle.dump(supported_chars, f, pickle.HIGHEST_PROTOCOL)
+                    with open(cache_file_path, 'wb') as f:
+                        pickle.dump(supported_chars, f, pickle.HIGHEST_PROTOCOL)
+                except:
+                    continue
             else:
                 try:
                     with open(cache_file_path, 'rb') as f:
                         supported_chars = pickle.load(f)
-                    print('Load font(%s) supported chars(%d) from cache' % (font_path, len(supported_chars)))
+                        # if len(supported_chars) == 2:
+                            # print('supported_chars',supported_chars,cache_file_path)
+
+
+                    # print('Load font(%s) supported chars(%d) from cache' % (font_path, len(supported_chars)))
                 except:
                     print('这个字体不行' ,font_path)
                     continue
@@ -184,7 +217,19 @@ def get_unsupported_chars(fonts, chars_file):
 
 
 if __name__ == '__main__':
-    font_paths = get_font_paths('./data/fonts/chn')
-    char_file = './data/chars/chn.txt'
+    font_paths = get_font_paths('/fengjing/data_script/OCR_textrender/data/fonts/jap')
+    # char_file = '../data/chars/chn.txt'
+    char_file = '../2.txt'
     chars = get_fonts_chars(font_paths, char_file)
-    print(chars)
+    # print(chars)
+    num = 1
+    fonts_list = [line.strip() for line in open('../data/fonts_list/chn.txt','r').readlines()]
+    eng_sp_symbol_txt = open('../data/fonts_list/jap_sp_symbol.txt','w')
+    for char in chars.keys():
+        if len(chars[char]) == 2:
+            new_char = './'+char.split('OCR_textrender/')[1]
+            if new_char in fonts_list:
+                eng_sp_symbol_txt.writelines('./'+char.split('OCR_textrender/')[1]+'\n')
+                print(char,chars[char])
+                num+=1
+    print(num)
