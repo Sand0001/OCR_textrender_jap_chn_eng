@@ -301,8 +301,8 @@ class JAPCorpus(Corpus):
                 super_or_sub = random.choice(['▿', '▵'])
                 add_scripts = super_or_sub + sp_symbol
             else:
-
-                add_scripts = random.choice(['□', '■'])
+                #['□', '■',]
+                add_scripts = random.choice(['◆', '★', '←', '↑', '→', '↓', '◇'])
 
             return add_scripts
 
@@ -350,7 +350,8 @@ class JAPCorpus(Corpus):
             if add_scripts.count('▿(') % 2 == 1:
                 add_scripts += '▿)'
         else:
-            add_scripts = random.choice(['□', '■'])
+            # add_scripts = random.choice(['□', '■'])
+            add_scripts = random.choice(['◆', '★', '←', '↑', '→', '↓', '◇'])
 
         if on_left:
             add_scripts = add_scripts.replace('▵+','')
@@ -436,7 +437,7 @@ class JAPCorpus(Corpus):
         #print (line[0:10], language)
         #word = line[start:start + length]
         #不能让文本的开始和结束有空格的出现
-        if (language == 'eng' and self.prob(1) ) or (language == 'jap' and self.prob(0.8) ):
+        if (language == 'eng' and self.prob(0.5) ) or (language == 'jap' and self.prob(0.4) ):
         #if self.prob(0.4):
             #print(language)
             #  有一定的几率将word中的字母随机替换成角标
