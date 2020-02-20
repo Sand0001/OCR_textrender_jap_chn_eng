@@ -302,7 +302,7 @@ class JAPCorpus(Corpus):
                 add_scripts = super_or_sub + sp_symbol
             else:
                 #['□', '■',]
-                add_scripts = random.choice(['◆', '★', '←', '↑', '→', '↓', '◇'])
+                add_scripts = random.choice(['◆', '★', '←', '↑', '→', '↓', '◇', '●', '●', '≠', '⊥', '‰'])
 
             return add_scripts
 
@@ -351,7 +351,7 @@ class JAPCorpus(Corpus):
                 add_scripts += '▿)'
         else:
             # add_scripts = random.choice(['□', '■'])
-            add_scripts = random.choice(['◆', '★', '←', '↑', '→', '↓', '◇'])
+            add_scripts = random.choice(['◆', '★', '←', '↑', '→', '↓', '◇', '●', '●', '≠', '⊥', '‰'])
 
         if on_left:
             add_scripts = add_scripts.replace('▵+','')
@@ -427,7 +427,7 @@ class JAPCorpus(Corpus):
             #tmp_word_1= random.choice(list(str_list_left))
             word = tmp_word_1[0] + word.strip(' ')
         #print('word',word)
-        if language == 'eng' and self.prob(0.04) :
+        if language == 'eng' and self.prob(0.02) :
             #有一定的几率全大写
             word = word.upper()
 
